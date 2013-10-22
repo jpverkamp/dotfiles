@@ -1,0 +1,16 @@
+[user]
+  name = JP Verkamp
+  email = me@jverkamp.com
+
+[alias]
+  call = !git add -A && git commit -m
+  tree = log --graph --decorate --pretty=oneline --abbrev-commit
+  co = checkout
+  br = branch
+  st = status
+  ci = commit
+  df = diff
+  lg = log -p
+
+[color]
+  ui = true
