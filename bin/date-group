@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+import datetime
+import email.utils
+import pprint
+import sys
+import time
+
+from collections import defaultdict as ddict
+
+MODES = {
+    'year': '%Y',
+    'month': '%Y-%m',
+    'week': '%Y-%m-%d',
+    'day': '%Y-%m-%d',
+    'hour': '%Y-%m-%d %H',
+    'minute': '%Y-%m-%d %H-%M',
+    'second': '%Y-%m-%d %H-%M-%S'
+}
+
+if len(sys.argv) == 1:
+    mode = 'day'
+elif len(sys.argv) == 2:
+    mode = sys.argv[1]
+    if not mode in MODES:
+        print('Invalid mode "%s", valid options are %s' % (mode, ', '.join(MODES)))
+        sys.exit(0)
+else:
+    print('Too many arguments, expected none or a mode from %s' % (', '.join(modes)))
+    sys.exit(0)
+
+chunks = ddict(lambda : 0)
+
+for line in sys.stdin:
+    if ',' in line:
+        when, count = line.split(',')
+        count = int(count)
+    else:
+        when, count = line, 1
+
+    if when.startswith('"'):
+        when = when.strip().strip('"')
+
+    when = datetime.datetime.fromtimestamp(time.mktime(email.utils.parsedate(when)))
+    
+    if mode == 'year':
+        when = datetime.datetime(when.year, 0, 0, 0, 0, 0)
+    elif mode == 'month':
+        when = datetime.datetime(when.year, when.month, 1, 0, 0, 0)
+    elif mode == 'week':
+        when = when - datetime.timedelta(days = when.isoweekday() % 7)
+        when = datetime.datetime(when.year, when.month, when.day, 0, 0, 0)
+    elif mode == 'day':
+        when = datetime.datetime(when.year, when.month, when.day, 0, 0, 0)
+    elif mode == 'hour':
+        when = datetime.datetime(when.year, when.month, when.day, when.hour, 0, 0)
+    elif mode == 'minute':
+        when = datetime.datetime(when.year, when.month, when.day, when.hour, when.minuite, 0)
+        
+    chunks[when] += count
+
+when_from = min(chunks)
+when_to = max(chunks)
+
+when = when_from
+while when <= when_to:
+    count = chunks[when] if when in chunks else 0
+    print('%s,%d' % (when.strftime(MODES[mode]), count))
+
+    if mode == 'year':
+        when = datetime.datetime(when.year + 1, 0, 0, 0, 0, 0)
+    elif mode == 'month':
+        if when.month < 12:
+            when = datetime.datetime(when.year, when.month + 1, 1, 0, 0, 0)
+        else:
+            when = datetime.datetime(when.year + 1, 1, 1, 0, 0, 0)
+    elif mode == 'week':
+        when += datetime.timedelta(weeks = 1)
+    elif mode == 'day':
+        when += datetime.timedelta(days = 1)
+    elif mode == 'hour':
+        when += datetime.timedelta(hours = 1)
+    elif mode == 'minute':
+        when += datetime.timedelta(minutes = 1)
+
+
+

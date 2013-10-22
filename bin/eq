@@ -1,0 +1,90 @@
+#!/usr/bin/perl -w
+#
+# eq: turn a LaTeX-style equation into a .png file
+#
+# This is horribly slow, but it produces nice output....
+#
+# Copyright (c) 2000 Chris Lightfoot. All rights reserved.
+#
+
+my $rcsid = '$Id: webeq,v 1.1 2000/12/31 03:31:08 chris Exp chris $';
+
+my $screendpi = 100;                    # alleged resolution of monitor
+my $aafact = 3;                         # scale factor for antialiasing; TeX should be configured to produce fonts at size $screendpi * $aafact
+my $highdpi = $screendpi * $aafact;
+
+my $gamma = 0.4;                        # gamma factor used to darken the output; 0.4 works OK for me
+
+#use vars qw(p::eq);
+
+$p::eq = $ARGV[0];
+
+# XXX see whether we have already rendered this
+
+chdir($ENV{TMP} || "/tmp");
+
+# tempfile:
+# Get a unique temporary file name; this is not safe.
+sub tempfile ($) {
+    my $suffix = shift;
+    my $base = $ENV{TMP};
+    $base ||= "/tmp";
+    my $name;
+    do {
+        $name = sprintf("%d.%d.%d", $$, time(), rand(65536));
+    } while (-e "$base/$name$suffix");
+    return "$base/$name$suffix";
+}
+
+my ($texfile, $pngfile);
+
+$texfile = tempfile(".tex");
+$pngfile = tempfile(".png");
+
+open(TEXFILE, ">$texfile") or die "$texfile: $!";
+
+print TEXFILE <<EOF;
+\\documentclass[12pt]{article}
+\\pagestyle{empty}               % no page numbers
+\\begin{document}
+\\[
+$p::eq
+\\]
+\\end{document}
+EOF
+
+close(TEXFILE);
+
+open(XOUT, ">&STDOUT");
+open(STDOUT, ">/dev/null");
+close(STDERR);
+print XOUT "";  # suppress warning
+
+system("latex --interaction nonstopmode $texfile");
+
+my $dvifile = $texfile;
+$dvifile =~ s/tex$/dvi/;
+
+if (-e $dvifile) {
+    my $pnmfile1 = tempfile(".pnm");
+    my $pnmfile2 = tempfile(".pnm");
+    my $pngfile = tempfile(".png");
+    my $scale = 1. / $aafact;
+    # now make the pnm files; we will need an inverted version for the alpha channel
+    system "dvips -D $highdpi -n 1 -f < $dvifile | ghostscript -sQUIET -sOutputFile=- -sDEVICE=pnm -dNOPAUSE -r$highdpi - | pnmcrop | pnmscale $scale | pnmgamma $gamma | tee $pnmfile1 | pnminvert > $pnmfile2";
+    if (-e $pnmfile1 and -e $pnmfile2) {
+        close(STDOUT);
+        open(STDOUT, ">&XOUT");
+        $| = 1;
+        system "pnmtopng -alpha $pnmfile2 -background '#ffffff' $pnmfile1";
+    }
+
+    unlink($pnmfile1);
+    unlink($pnmfile2);
+}
+
+foreach (qw(tex dvi log aux)) {
+    my $f = $texfile;
+    $f =~ s/tex$/$_/;
+    unlink($f);
+}

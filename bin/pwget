@@ -1,0 +1,12 @@
+#!/bin/sh
+
+EXPECTED_ARGS=2
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` {proxy} {site}"
+  exit $E_BADARGS
+fi
+
+wget -e "http_proxy=$1" -U "Mozilla/5.0 (Windows NT 6.2; rv:9.0.1) Gecko/20100101 Firefox/9.0.1" $2

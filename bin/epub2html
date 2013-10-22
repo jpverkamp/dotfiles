@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+print 'here'
+
+import os
+import sys
+from zipfile import ZipFile
+
+for name in os.listdir('.'):
+	if name.endswith('epub'):
+		new_name = name[:-5] + '.htm'
+		print '%s -> %s' % (name, new_name)
+
+		f_in = ZipFile(name, 'r')
+		f_out = open(new_name, 'w')
+
+		for file in sorted(f_in.namelist()):
+			if file.endswith('html'):
+				f_out.write(f_in.open(file).read().replace('</p>', '</p><br />'))
+
+		f_in.close()
+		f_out.close()
+		
+	

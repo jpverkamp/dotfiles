@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+def getTerminalSize():
+    def ioctl_GWINSZ(fd):
+        try:
+            import fcntl, termios, struct, os
+            cr = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ,
+        '1234'))
+        except:
+            return None
+        return cr
+    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+    if not cr:
+        try:
+            fd = os.open(os.ctermid(), os.O_RDONLY)
+            cr = ioctl_GWINSZ(fd)
+            os.close(fd)
+        except:
+            pass
+    if not cr:
+        try:
+            cr = (env['LINES'], env['COLUMNS'])
+        except:
+            cr = (25, 80)
+    return int(cr[0]), int(cr[1])
+
+rows, cols = getTerminalSize()
+col_w = cols / 2 - 2
+
+def lines():
+    for line in sys.stdin.readlines():
+        line = line.strip('\n')
+        if len(line) == 0:
+            yield ''
+        else:
+            while len(line) > 0:
+                yield line[:col_w]
+                line = line[col_w:]
+
+all = list(lines())
+left = all[:len(all) / 2]
+right = all[len(all) / 2:]
+
+if len(left) < len(right): left.append('')
+if len(right) < len(left): right.append('')
+
+fstr = '%%-%ds %%-%ds' % (col_w, col_w)
+
+for l, r in zip(left, right):
+    print fstr % (l, r)
+

@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import datetime
+import os
+import pexpect
+import sys
+import threading
+
+ssh_options = '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t'
+
+def usage():
+    print('Possible usage:')
+    print('\tplanet-lab push {files}     - deploy files to pl nodes')
+    print('\tplanet-lab run {command}    - run a command remotely')
+    print('\tplanet-lab thread {command} - run a command remotely (use threads)')
+    print('\tplanet-lab pull {files}     - pull a set of files from pl nodes')
+    exit()
+
+config = os.path.expanduser('~/.planetlab')
+
+if not os.path.exists(config):
+    print('Configuration file not found. (~/.planetlab)\n')
+    usage()
+    
+
+with open(config, 'r') as f:
+    for line in f:
+        line = line.split('=')
+        if len(line) <= 1: continue
+
+        key = line[0]
+        if len(line) == 2: val = line[1]
+        else: val = '='.join(line[1:])
+
+        key = key.strip()
+        val = val.strip()
+
+        if key == 'idenfile': 
+            idenfile = val
+        elif key == 'username': 
+            username = val
+        elif key == 'password': 
+            password = val
+        elif key == 'nodes':
+            nodes = [x.strip() for x in val.split(',')]
+        elif key == 'oldnodes':
+            pass
+        else:
+            print('Unknown configuration option: %s = %s\n' % (key, val))
+            usage()
+
+def main():
+    if len(sys.argv) <= 2: usage()
+
+    command = sys.argv[1]
+    args = sys.argv[2:]
+
+    if command == 'push': push(args)
+    elif command == 'run': run(args)
+    elif command == 'thread': runt(args)
+    elif command == 'pull': pull(args)
+    else: usage()
+
+def do(cmd):
+    try:
+        p = pexpect.spawn(cmd)
+        p.expect("Enter passphrase for ssh key:")
+        p.sendline(password)
+        try:
+            p.interact()
+        except OSError:
+            pass
+    except Exception, e:
+        pass # Whee surpressing errors :)
+    print()
+
+def push(args):
+    push_cmd = 'scp -i %s %s %s@%s:'
+    for node in nodes:
+        print('Pushing to %s:' % node)
+        for arg in args:
+            do(push_cmd % (idenfile, arg, username, node))
+
+def run(args):
+    run_cmd = "ssh " + ssh_options + " -i %s %s@%s '%s'"
+    for node in nodes:
+        print('Running on %s:' % node)
+        for arg in args:
+            do(run_cmd % (idenfile, username, node, arg))
+
+def runt(args):
+    run_cmd = "ssh " + ssh_options + " -i %s %s@%s '%s'"
+    class OnNode(threading.Thread):
+        def run(self):
+            for arg in args:
+                do(run_cmd % (idenfile, username, self.node, arg))
+            print('Finishing. Active threads: %d' % threading.active_count())
+    for node in nodes:
+        t = OnNode()
+        t.node = node
+        t.start()
+    while threading.active_count() > 0:
+        t.join()
+
+def pull(args):
+    pull_cmd = 'scp -i %s %s@%s:%s pull/%s/%s/'
+    now = ''.join([str(x) for x in datetime.datetime.today().timetuple()[0:6]])
+    for node in nodes:
+        print('Pulling from %s:' % node)
+        for arg in args:
+            os.makedirs('pull/%s/%s' % (now, node))
+            do(pull_cmd % (idenfile, username, node, arg, now, node))
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

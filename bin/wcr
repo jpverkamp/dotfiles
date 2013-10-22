@@ -1,0 +1,178 @@
+#!/bin/sh
+#
+# Copyright 1995, by Hewlett-Packard Company
+#
+# The code in this file is from the book "Shell Programming
+# Examples" by Bruce Blinn, published by Prentice Hall.
+# This file may be copied free of charge for personal,
+# non-commercial use provided that this notice appears in
+# all copies of the file.  There is no warranty, either
+# expressed or implied, supplied with this code.
+#
+# NAME
+#    Wc - recursive version of the wc command
+#
+# SYNOPSIS
+#    Wc [-c][-l][-w] [file | directory ...]
+#
+# DESCRIPTION
+#    This is a recursive version of the wc command.  This
+#    command counts the lines, words,and characters in the
+#    files similar to the wc command, however, this command
+#    also searches subdirectories for files to include in
+#    the counts.
+#
+#    If a file name on the command line contains wildcard
+#    characters, it must be quoted so that the wildcard
+#    characters can be processed inside this shell script
+#    rather than being expanded into file names on the
+#    command line.  For example:
+#
+#         Wc "directory/*.c"
+#
+#    will search "directory" and its subdirectories for
+#    files that end in ".c" and count the lines, words, and
+#    characters in those files.
+#
+#    -c    Count characters
+#
+#    -l    Count lines
+#
+#    -w    Count words
+#
+# RETURN VALUE
+#    0    Successful completion
+#    1    Usage error
+#
+############################################################
+CMDNAME=`basename $0`
+USAGE="Usage: $CMDNAME [-c][-l][-w] [file | directory ...]"
+TMP=/tmp/Wc.$$           # Temporary file for output of wc
+LINE=                    # Line read from file
+DIR=                     # Top level directory
+PATTERN=                 # File name matching pattern
+C=                       # Suppress newline of echo (Sys V)
+N=                       # Suppress newline of echo (BSD)
+COUNT_LINES=FALSE        # Display the number of lines?
+COUNT_WORDS=FALSE        # Display the number of words?
+COUNT_CHARS=FALSE        # Display the number of characters?
+LINES=0                  # Cumulative line count
+WORDS=0                  # Cumulative word count
+CHARS=0                  # Cumulative character count
+
+trap 'rm -f /tmp/*.$$; exit 1' 1 2 3 15
+
+#
+# Parse command options.
+#
+while :
+do
+     case $1 in
+          -c)  COUNT_CHARS=TRUE
+               shift
+               ;;
+          -l)  COUNT_LINES=TRUE
+               shift
+               ;;
+          -w)  COUNT_WORDS=TRUE
+               shift
+               ;;
+          --)  shift
+               break
+               ;;
+          -*)  echo "$USAGE" 1>&2
+               exit 1
+               ;;
+          *)   break
+               ;;
+     esac
+done
+
+#
+# Set default.
+#
+if [ $COUNT_LINES = FALSE -a \
+     $COUNT_WORDS = FALSE -a \
+     $COUNT_CHARS = FALSE ]
+then
+     COUNT_LINES=TRUE
+     COUNT_WORDS=TRUE
+     COUNT_CHARS=TRUE
+fi
+
+#
+# Set the options for echo.
+#
+if [ "`echo -n`" = "-n" ]; then
+     C='\c'
+else
+     N='-n'
+fi
+
+for parm in "${@:-.}"
+do
+     if [ -d "$parm" ]; then
+          DIR="$parm"
+          PATTERN="*"
+     else
+          DIR=`dirname "$parm"`
+          PATTERN=`basename "$parm"`
+     fi
+
+     for d in `find $DIR -type d -print | sort`
+     do
+          #
+          # The standard error of wc is sent to /dev/null to
+          # discard the message that is printed when there
+          # is no file that matches the pattern.
+          #
+          wc $d/$PATTERN 2>/dev/null |
+               grep -v " total$" >$TMP
+
+          exec <$TMP
+          while read LINE
+          do
+               set -- $LINE
+
+               if [ "$COUNT_LINES" = "TRUE" ]; then
+                    LINES=`expr $LINES + $1`
+                    echo $N "	$1$C"
+               fi
+               shift
+
+               if [ "$COUNT_WORDS" = "TRUE" ]; then
+                    WORDS=`expr $WORDS + $1`
+                    echo $N "	$1$C"
+               fi
+               shift
+
+               if [ "$COUNT_CHARS" = "TRUE" ]; then
+                    CHARS=`expr $CHARS + $1`
+                    echo $N "	$1$C"
+               fi
+               shift
+
+               echo "	$@"
+          done
+     done
+done
+
+#
+# Print totals
+#
+if [ "$COUNT_LINES" = "TRUE" ]; then
+     echo $N "	    $LINES$C"
+fi
+
+if [ "$COUNT_WORDS" = "TRUE" ]; then
+     echo $N "	    $WORDS$C"
+fi
+
+if [ "$COUNT_CHARS" = "TRUE" ]; then
+     echo $N "	    $CHARS$C"
+fi
+
+echo "	Total"
+
+rm -f /tmp/*.$$
+exit 0

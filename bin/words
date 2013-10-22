@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+#wc -l `find ~/Dropbox/PlainText/Writing -name *.txt`
+#wc -w ~/Dropbox/PlainText/Writing/**/*.txt | grep total
+if [ $# -eq 1 ]
+then
+    if [[ $1 == "here" ]]
+    then
+	#watch -t -n 10 'wc -w *txt && echo "\nOverall:" && words'
+	watch -t -n 2 'wc -w *txt'
+    else
+	cd ~/Dropbox/PlainText && wc -w *.txt */*.txt */*/*.txt */*/*/*.txt */*/*/*.txt */*/*/*/*.txt */*/*/*/*/*.txt | tail -n 1
+	echo " $1 target"
+    fi
+else
+    cd ~/Dropbox/PlainText && wc -w *.txt */*.txt */*/*.txt */*/*/*.txt */*/*/*.txt */*/*/*/*.txt */*/*/*/*/*.txt | tail -n 1
+fi

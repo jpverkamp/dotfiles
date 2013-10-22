@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+#
+# evencolumns:
+# Reformat a file so that the beginnings of each column line up.
+#
+# Copyright (c) 2002 Chris Lightfoot. All rights reserved.
+# Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
+#
+
+my $rcsid = ''; $rcsid .= '$Id: evencolumns,v 1.2 2002/10/29 11:53:25 chris Exp $';
+
+my $quantum = 4;
+
+if (@ARGV == 1) {
+    $quantum = $ARGV[0];
+    if ($quantum =~ /[^\d]/ or $quantum == 0) {
+        die "invalid column width unit `$quantum'";
+    }
+} elsif (@ARGV > 1) {
+    die "optional single argument is column width unit";
+}
+
+my @maxwidth;
+my @lines;
+my $i;
+
+while ($line = <STDIN>) {
+    chomp $line;
+    my @r = split(/[ \t]+/, $line);
+    for ($i = 0; $i < @r; ++$i) {
+        my $l = length($r[$i]);
+        $maxwidth[$i] = $l if (!defined($maxwidth[$i]) || $l > $maxwidth[$i]);
+    }
+    push(@lines, [ @r ]);
+}
+
+foreach (@maxwidth) {
+    my $a = $quantum - ($_ % $quantum);
+    $a = $quantum if (!$a);
+    $_ += $a;
+}
+
+foreach (@lines) {
+    for ($i = 0; $i < @$_; ++$i) {
+        print $_->[$i];
+        print " " x ($maxwidth[$i] - length($_->[$i])) if ($i != @$_ - 1);
+    }
+    print "\n";
+}
