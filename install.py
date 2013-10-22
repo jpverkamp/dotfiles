@@ -10,7 +10,7 @@ def run(cmd, *args):
 
 for file in sorted(os.listdir('.')):
     if file.startswith('.') or file.endswith('~'): continue
-    if file == 'install.py': continue
+    if file in ('README.md', 'install.py'): continue
     
     new_file = os.path.abspath(os.path.expanduser('~/.{0}'.format(file)))
     file = os.path.abspath(file)
