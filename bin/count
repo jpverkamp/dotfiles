@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from collections import defaultdict as ddict
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-k', '--key-sort',   dest='keySort', action='store_true')
+parser.add_argument('-v', '--value-sort', dest='valSort', action='store_true')
+parser.add_argument('-r', '--reverse',    dest='reverse', action='store_true')
+parser.add_argument('-n', '--numeric',    dest='numeric', action='store_true')
+
+args = parser.parse_args()
+
+if args.keySort and args.valSort:
+    print('Cannot sort by both key and value')
+    exit()
+
+counts = ddict(lambda : 0)
+for line in sys.stdin:
+    counts[line.strip()] += 1
+
+f = int if args.numeric else lambda x : x
+
+values = counts.items()
+if args.keySort: values = sorted(values, key = lambda el: f(el[0]))
+if args.valSort: values = sorted(values, key = lambda el: f(el[1]))
+if args.reverse: values = reversed(values)
+
+for k, v in values:
+    print('{0}\t{1}'.format(v, k))
