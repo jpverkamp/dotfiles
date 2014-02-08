@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+try:
+    from ua_parser import user_agent_parser
+except:
+    print('''Requires ua-parser: 
+https://github.com/tobie/ua-parser
+
+You can install ua-parser by running:
+pip install pyyaml ua-parser''')
+    exit()
+
+parser = argparse.ArgumentParser(description='Parse user agent strings', formatter_class=argparse.RawDescriptionHelpFormatter, epilog='''Examples:
+> ua --format "{user_agent[family]} {user_agent[major]}.{user_agent[minor]}"
+Mobile Safari 5.1
+
+> ua --format "{os[family]}"
+iOS
+
+> ua --format "{device[family]}"
+iPhone'''
+)
+parser.add_argument(
+    '-f', 
+    '--format', 
+    dest="format", 
+    default='{device[family]}\t{os[family]} {os[major]}.{os[minor]}\t{user_agent[family]} {user_agent[major]}.{user_agent[minor]}',
+)
+args = parser.parse_args()
+
+for line in sys.stdin:
+		data = user_agent_parser.Parse(line.strip())
+		print args.format.format(**data)
