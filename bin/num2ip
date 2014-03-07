@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+import socket
+import struct
+import sys
+
+for line in sys.stdin:
+    try:
+        print socket.inet_ntoa(struct.pack('!L', long(line.strip())))
+    except:
+        print line.strip()
