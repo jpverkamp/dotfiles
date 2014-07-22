@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+array_shift($argv);
+$date_string = implode(' ', $argv);
+
+date_default_timezone_set('America/Los_Angeles');
+echo date('Y-m-d', strtotime($date_string)) . "\n";
