@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import re
+import sys
+
+if len(sys.argv) < 3:
+	print('Usage: re {pattern} {replacement} [file(s)]')
+	sys.exit()
+
+in_place_mode = '-i' in sys.argv
+if in_place_mode: sys.argv.remove('-i')
+
+pattern, replacement = sys.argv[1:3]
+files = sys.argv[3:]
+if not files: files = ['-']
+
+for file in files:
+	if file == '-':
+		fin = sys.stdin
+	else:
+		fin = open(file, 'r')
+		
+	text = fin.read()
+	fin.close()
+	
+	text = re.sub(pattern, replacement, text)
+	
+	if in_place_mode:
+		fout = open(file, 'w')
+	else:
+		fout = sys.stdout
+		
+	fout.write(text)
+	
+	if in_place_mode:
+		fout.close()
