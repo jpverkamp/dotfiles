@@ -49,3 +49,6 @@ alias rsmv="rscp --remove-source-files"
 
 # Shortcut to rebuild using standard make setup
 alias remake="make clean && make"
+
+# Simple HTTP server
+alias http="python -m SimpleHTTPServer"
