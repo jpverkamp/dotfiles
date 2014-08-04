@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gnumfmt --to=iec-i --suffix=B --format="%3f" $1
