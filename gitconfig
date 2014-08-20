@@ -12,7 +12,7 @@
   df = diff
   lg = log -p
   undo = reset HEAD~1 --mixed
-  up = !git pull --rebase --prune $@ && git submodule update --init --recursive
+  up = !git pull --rebase --prune $@ && git submodule update --init --recursive && git clean-branches
   wipe = !git add -A && git commit -qm 'WIPE SAVEPOINT' && git reset HEAD~1 --hard
 
 [color]
