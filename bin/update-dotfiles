@@ -12,12 +12,7 @@ import sys
 import tempfile
 import urllib2
 
-aes_enabled = False
-try:
-    aes = imp.load_source('aes', os.path.expanduser('~/.bin/aes'))
-    aes_enabled = True
-except:
-    pass
+aes = None
 
 api_url = 'https://api.github.com/repos/jpverkamp/dotfiles/git/trees/master?recursive=1'
 api_in = urllib2.urlopen(api_url)
@@ -76,6 +71,11 @@ def decode_file(js):
         print('Cannot diff, unknown content type: ' + remote_js['encoding'])
         sys.exit(0)
 
+def decrypt_file(path):
+    pass
+
+def get_local_file(path):
+    pass
 
 for file in api['tree']:
     path = os.path.expanduser('~/.' + file['path'])
@@ -111,6 +111,28 @@ for file in api['tree']:
 
                 with open(path, 'wb') as file_out:
                     file_out.write(remote_content)
+
+                # If the file is encrypted, decrypt it
+                if path.endswith('.aes'):
+                    try:
+                        if not aes:
+                            aes = imp.load_source('aes', os.path.expanduser('~/.bin/aes'))
+
+                        if aes:
+                            print('{0} decrypting'.format(path))
+                            aes.decrypt(path)
+                            shutil.copymode(path, path[:-4])
+                            path = path[:-4]
+                    except:
+                        print('{0} cannot decrypt, aes does not exist'.format(path))
+
+                # If the file specifies the current os or env, copy it
+                for extension in extensions:
+                    if extension and path.endswith(extension):
+                        print('{0} copying extension {1}'.format(path, extension))
+                        path_local = path[:-1 * len(extension)]
+                        shutil.copy(path, path_local)
+                        shutil.copymode(path, path_local)
 
                 break
 
@@ -153,18 +175,3 @@ for file in api['tree']:
         pass
     else:
         print('{0} matches, skipping'.format(path))
-
-    # If the file is encrypted, decrypt it
-    if aes_enabled and path.endswith('.aes'):
-        print('{0} decrypting'.format(path))
-        aes.decrypt(path)
-        shutil.copymode(path, path[:-4])
-        path = path[:-4]
-
-    # If the file specifies the current os or env, copy it
-    for extension in extensions:
-        if extension and path.endswith(extension):
-            print('{0} copying extension {1}'.format(path, extension))
-            path_local = path[:-1 * len(extension)]
-            shutil.copy(path, path_local)
-            shutil.copymode(path, path_local)
