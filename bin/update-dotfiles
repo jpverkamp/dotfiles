@@ -12,7 +12,12 @@ import sys
 import tempfile
 import urllib2
 
-imp.load_source('aes', './aes')
+aes_enabled = False
+try:
+    aes = imp.load_source('aes', os.path.expanduser('~/.bin/aes'))
+    aes_enabled = True
+except:
+    pass
 
 api_url = 'https://api.github.com/repos/jpverkamp/dotfiles/git/trees/master?recursive=1'
 api_in = urllib2.urlopen(api_url)
@@ -29,7 +34,7 @@ elif platform.system() == 'Windows':
     extensions.append('.windows')
 
 if '--env' in sys.argv:
-    index = sys.argv.find('--env')
+    index = sys.argv.index('--env')
     extensions.append('.' + sys.argv[index + 1])
     del sys.argv[index]
 
@@ -107,19 +112,7 @@ for file in api['tree']:
                 with open(path, 'wb') as file_out:
                     file_out.write(remote_content)
 
-                # If the file is encrypted, decrypt it
-                if file_out.endswith('.aes'):
-                    print('-- Decrypting'.format(extension = extension))
-                    aes.decrypt(file_out)
-                    shutil.copymode(file_out, file_out[:-4])
-
-                # If the file specifies the current os or env, copy it
-                for extension in extensions:
-                    if extension and file_out.endswith(extension):
-                        print('-- Copying {extension}'.format(extension = extension))
-                        file_out_local = file_out[:-1 * len(extension)]
-                        shutil.copy(file_out, file_out_local)
-                        shutil.copymode(file_out, file_out_local)
+                break
 
             # Skip the current file
             elif choice == 'n':
@@ -160,3 +153,18 @@ for file in api['tree']:
         pass
     else:
         print('{0} matches, skipping'.format(path))
+
+    # If the file is encrypted, decrypt it
+    if aes_enabled and path.endswith('.aes'):
+        print('{0} decrypting'.format(path))
+        aes.decrypt(path)
+        shutil.copymode(path, path[:-4])
+        path = path[:-4]
+
+    # If the file specifies the current os or env, copy it
+    for extension in extensions:
+        if extension and path.endswith(extension):
+            print('{0} copying extension {1}'.format(path, extension))
+            path_local = path[:-1 * len(extension)]
+            shutil.copy(path, path_local)
+            shutil.copymode(path, path_local)

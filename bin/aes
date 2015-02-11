@@ -9,7 +9,17 @@ import os
 
 from Crypto.Cipher import AES
 
-def encrypt(file, key):
+def get_key():
+    if 'AESKEY' in os.environ:
+        key = os.environ['AESKEY']
+    else:
+        key = getpass.getpass('AES passphrase: ')
+
+    return hashlib.sha256(key.encode('utf-8')).digest()
+
+def encrypt(file):
+
+    key = get_key()
 
     iv = os.urandom(16)
     encryptor = AES.new(key, AES.MODE_CBC, IV = iv)
@@ -30,7 +40,9 @@ def encrypt(file, key):
     with open(outfile, 'wb') as fout:
         fout.write(content)
 
-def decrypt(file, key):
+def decrypt(file):
+
+    key = get_key()
 
     with open(file, 'r') as fin:
         content = fin.read()
@@ -60,15 +72,8 @@ def decrypt(file, key):
 
 if __name__ == '__main__':
 
-    if 'AESKEY' in os.environ:
-        key = os.environ['AESKEY']
-    else:
-        key = getpass.getpass('AES passphrase: ')
-
-    key = hashlib.sha256(key.encode('utf-8')).digest()
-
     for file in sys.argv[1:]:
         if file.endswith('.aes'):
-            decrypt(file, key)
+            decrypt(file)
         else:
-            encrypt(file, key)
+            encrypt(file)
