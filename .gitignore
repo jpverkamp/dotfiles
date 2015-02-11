@@ -1,2 +1,4 @@
 *~
 *.pyc
+ssh/config
+ssh/config.work
