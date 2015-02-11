@@ -19,6 +19,9 @@ alias ..='cd ..'
 # Never use emacs window
 alias em="emacs -nw"
 
+# Use vim
+alias vi="vim"
+
 # Special uses of rsync to do cp and mv with a progress bar
 alias rscp="rsync -aP --no-whole-file --inplace"
 alias rsmv="rscp --remove-source-files"
