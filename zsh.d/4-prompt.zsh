@@ -1,3 +1,9 @@
+# Automatically run an ls after each cd (or otherwise changing directory)
+function chpwd() {
+    emulate -LR zsh
+    ls
+}
+
 # Prompt may change
 function zsh_update_prompt {
     PROMPT="
