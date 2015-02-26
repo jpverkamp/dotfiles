@@ -3,7 +3,14 @@
 import sys
 import time
 
-for line in sys.stdin:
+def stamp(line):
     now = time.strftime("[%Y-%m-%d %H:%M:%S]", time.localtime())
-    sys.stdout.write('{0} {1}'.format(now, line))
+    sys.stdout.write('{0} {1}\n'.format(now, line.strip('\n')))
     sys.stdout.flush()
+
+stamp('--- <ts> ---')
+
+for line in sys.stdin:
+    stamp(line)
+
+stamp('--- </ts> ---')
