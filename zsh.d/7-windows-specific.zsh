@@ -1,7 +1,7 @@
 function blogtest() {
-  blog --test $1 && pushd _build && python -mSimpleHTTPServer; popd
+  racket C:/Users/JP/Projects/blog-generator/blog.rkt --test "$@" && pushd _build && python -mSimpleHTTPServer; popd
 }
 
 function blogdeploy() {
-  blog --deploy && pushd _deploy && git push; popd
+  racket C:/Users/JP/Projects/blog-generator/blog.rkt --deploy && pushd _deploy && git push; popd
 }
