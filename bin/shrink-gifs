@@ -1,0 +1,11 @@
+#!/bin/bash
+
+tmpdir=`mktemp -d /tmp/shrink-gifs.XXXX`
+echo "$tmpdir"
+
+for file in "$@"
+do
+  echo "$file"
+  convert "$file" -alpha on -channel rgba -coalesce -resize 256x256 -layers OptimizeFrame -colors 64 "$tmpdir/$file"
+  mv "$tmpdir/$file" "$file"
+done
