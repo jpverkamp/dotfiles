@@ -8,7 +8,7 @@ for line in sys.stdin:
     try:
         line = line.strip()
         if '.' in line:
-            print(struct.unpack("!L", line)[0])
+            print(struct.unpack("!L", socket.inet_aton(line))[0])
         else:
             print(socket.inet_ntoa(struct.pack('!L', long(line.strip()))))
     except:
