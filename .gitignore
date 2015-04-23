@@ -1,4 +1,8 @@
 *~
 *.pyc
+*.bak
+
+compiled
+
 ssh/config
 ssh/config.work
