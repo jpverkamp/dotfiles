@@ -1,0 +1,8 @@
+#!/usr/local/bin/bash
+
+# Source: https://github.com/tonatiuh/dotfiles/blob/master/git/extensions/git-pull-request
+
+repo=`git remote -v | grep -m 1 "(push)" | sed -e "s/.*github.com[:/]\(.*\)\.git.*/\1/"`
+branch=`git name-rev --name-only HEAD`
+echo "... creating pull request for branch \"$branch\" in \"$repo\""
+open https://github.com/$repo/pull/new/$branch
