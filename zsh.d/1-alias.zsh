@@ -36,6 +36,6 @@ alias blog="racket ~/Projects/blog-generator/blog.rkt"
 alias http="python -m SimpleHTTPServer"
 
 # Docker aliases
-alias docker-nuke="docker ps -q | xargs docker kill"
-alias docker-bash="docker exec -it $(docker ps -q | head -n 1) bash"
-alias docker-cleanup="docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f"
+docker-nuke () { docker ps -q | xargs docker kill }
+docker-bash () { docker exec -it $(docker ps -q | head -n 1) bash } 
+docker-cleanup () { docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f }
