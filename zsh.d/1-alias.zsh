@@ -38,4 +38,8 @@ alias http="python -m SimpleHTTPServer"
 # Docker aliases
 docker-nuke () { docker ps -q | xargs docker kill }
 docker-bash () { docker exec -it $(docker ps -q | head -n 1) bash } 
-docker-cleanup () { docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f }
+docker-cleanup () {
+  docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f;
+  docker rm -v $(docker ps -a -q -f status=exited);
+  docker rmi $(docker images -f "dangling=true" -q);
+}
