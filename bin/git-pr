@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 
 # Source: https://github.com/tonatiuh/dotfiles/blob/master/git/extensions/git-pull-request
 
