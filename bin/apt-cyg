@@ -24,30 +24,84 @@
 # THE SOFTWARE.
 
 mapfile usage <<+
-usage: apt-cyg [command] [options] [packages]
+NAME
+  apt-cyg - package manager utility
 
-Commands:
-   install     Install packages
-   remove      Remove packages
-   update      Update setup.ini
-   download    Download only - do NOT install or unpack archives
-   show        Displays the package records for the named packages
-   depends     Performs recursive dependency listings
-   rdepends    Display packages which require X to be installed,
-               AKA show reverse dependencies
-   list        List packages matching given pattern. If no pattern is given,
-               list all installed packages.
-   category    List packages matching given category
-   listfiles   List files owned by packages
-   search      Search for a filename from installed packages
-   searchall   Search for a filename from all available packages
+SYNOPSIS
+  apt-cyg [operation] [options] [targets]
 
-Options:
-   -c, --cache <dir>      set cache
-   -f, --file <file>      read package names from file
-   -m, --mirror <url>     set mirror
-   --help
-   --version
+DESCRIPTION
+  apt-cyg is a package management utility that tracks installed packages on a
+  Cygwin system. Invoking apt-cyg involves specifying an operation with any
+  potential options and targets to operate on. A target is usually a package
+  name, file name, URL, or a search string. Targets can be provided as command
+  line arguments.
+
+OPERATIONS
+  install
+    Install package(s).
+
+  remove
+    Remove package(s) from the system.
+
+  update
+    Download a fresh copy of the master package list (setup.ini) from the
+    server defined in setup.rc.
+
+  download
+    Retrieve package(s) from the server, but do not install/upgrade anything.
+
+  show
+    Display information on given package(s).
+
+  depends
+    Produce a dependency tree for a package.
+
+  rdepends
+    Produce a tree of packages that depend on the named package.
+
+  list
+    Search each locally-installed package for names that match regexp. If no
+    package names are provided in the command line, all installed packages will
+    be queried.
+
+  listall
+    This will search each package in the master package list (setup.ini) for
+    names that match regexp.
+
+  category
+    Display all packages that are members of a named category.
+
+  listfiles
+    List all files owned by a given package. Multiple packages can be specified
+    on the command line.
+
+  search
+    Search for downloaded packages that own the specified file(s). The path can
+    be relative or absolute, and one or more files can be specified.
+
+  searchall
+    Search cygwin.com to retrieve file information about packages. The provided
+    target is considered to be a filename and searchall will return the
+    package(s) which contain this file.
+
+  mirror
+    Set the mirror; a full URL to a location where the database, packages, and
+    signatures for this repository can be found. If no URL is provided, display
+    current mirror.
+
+  cache
+    Set the package cache directory. If a file is not found in cache directory,
+    it will be downloaded. Unix and Windows forms are accepted, as well as
+    absolute or regular paths. If no directory is provided, display current
+    cache.
+
+OPTIONS
+  --nodeps
+    Specify this option to skip all dependency checks.
+
+  --version
+    Display version and exit.
 +
 
 mapfile version <<+
@@ -57,8 +111,6 @@ The MIT License (MIT)
 
 Copyright (c) 2005-9 Stephen Jungels
 +
-
-ARCH=${HOSTTYPE/i6/x}
 
 function wget {
   if command wget -h &>/dev/null
@@ -93,8 +145,8 @@ function find-workspace {
   s : %3a g
   ' <<< "$mirror")
 
-  mkdir -p "$cache/$mirrordir/$ARCH"
-  cd "$cache/$mirrordir/$ARCH"
+  mkdir -p "$cache/$mirrordir/$arch"
+  cd "$cache/$mirrordir/$arch"
   if [ -e setup.ini ]
   then
     return 0
@@ -107,7 +159,7 @@ function find-workspace {
 function get-setup {
   touch setup.ini
   mv setup.ini setup.ini-save
-  wget -N $mirror/$ARCH/setup.bz2
+  wget -N $mirror/$arch/setup.bz2
   if [ -e setup.bz2 ]
   then
     bunzip2 setup.bz2
@@ -124,13 +176,9 @@ function check-packages {
   then
     return 0
   else
-    echo No packages found
+    echo No packages found.
     return 1
   fi
-}
-
-function info {
-  printf '\e[36m%s\e[m\n' "$*" >&2
 }
 
 function warn {
@@ -161,20 +209,25 @@ function apt-category {
 }
 
 function apt-list {
+  local sbq
+  for pkg in "${pks[@]}"
+  do
+    let sbq++ && echo
+    awk 'NR>1 && $1~pkg && $0=$1' pkg="$pkg" /etc/setup/installed.db
+  done
+  let sbq && return
+  awk 'NR>1 && $0=$1' /etc/setup/installed.db
+}
+
+function apt-listall {
+  check-packages
   find-workspace
   local sbq
   for pkg in "${pks[@]}"
   do
-    (( sbq++ )) && echo
-    info Searching for installed packages matching "$pkg":
-    awk 'NR>1 && $1~ENVIRON["pkg"] && $0=$1' /etc/setup/installed.db
-    echo
-    info Searching for installable packages matching "$pkg":
-    awk '$1 ~ ENVIRON["pkg"] && $0 = $1' RS='\n\n@ ' FS='\n' setup.ini
+    let sbq++ && echo
+    awk '$1~pkg && $0=$1' RS='\n\n@ ' FS='\n' pkg="$pkg" setup.ini
   done
-  (( sbq )) && return
-  info The following packages are installed:
-  awk 'NR>1 && $0=$1' /etc/setup/installed.db
 }
 
 function apt-listfiles {
@@ -318,17 +371,21 @@ function download {
 
   # check the md5
   digest=$4
-  mkdir -p $cache/$mirrordir/$dn
-  cd $cache/$mirrordir/$dn
-  if ! test -e $bn || ! md5sum -c <<< "$digest $bn"
+  case ${#digest} in
+   32) hash=md5sum    ;;
+  128) hash=sha512sum ;;
+  esac
+  mkdir -p "$cache/$mirrordir/$dn"
+  cd "$cache/$mirrordir/$dn"
+  if ! test -e $bn || ! $hash -c <<< "$digest $bn"
   then
     wget -O $bn $mirror/$dn/$bn
-    md5sum -c <<< "$digest $bn" || exit
+    $hash -c <<< "$digest $bn" || exit
   fi
 
   tar tf $bn | gzip > /etc/setup/"$pkg".lst.gz
   cd ~-
-  mv desc $cache/$mirrordir/$dn
+  mv desc "$cache/$mirrordir/$dn"
   echo $dn $bn > /tmp/dwn
 }
 
@@ -357,7 +414,7 @@ function apt-searchall {
   cd /tmp
   for pkg in "${pks[@]}"
   do
-    printf -v qs 'text=1&arch=%s&grep=%s' $ARCH "$pkg"
+    printf -v qs 'text=1&arch=%s&grep=%s' $arch "$pkg"
     wget -O matches cygwin.com/cgi-bin2/package-grep.cgi?"$qs"
     awk '
     {
@@ -392,7 +449,7 @@ function apt-install {
   read dn bn </tmp/dwn
   echo Unpacking...
 
-  cd $cache/$mirrordir/$dn
+  cd "$cache/$mirrordir/$dn"
   tar -x -C / -f $bn
   # update the package database
 
@@ -430,7 +487,7 @@ function apt-install {
   fi
   if (( wr ))
   then
-    info some required packages did not install, continuing
+    echo some required packages did not install, continuing
   fi
 
   # run all postinstall scripts
@@ -507,6 +564,49 @@ function apt-remove {
   done
 }
 
+function apt-mirror {
+  if [ "$pks" ]
+  then
+    awk -i inplace '
+    1
+    /last-mirror/ {
+      getline
+      print "\t" pks
+    }
+    ' pks="$pks" /etc/setup/setup.rc
+    echo Mirror set to "$pks".
+  else
+    awk '
+    /last-mirror/ {
+      getline
+      print $1
+    }
+    ' /etc/setup/setup.rc
+  fi
+}
+
+function apt-cache {
+  if [ "$pks" ]
+  then
+    vas=$(cygpath -aw "$pks")
+    awk -i inplace '
+    1
+    /last-cache/ {
+      getline
+      print "\t" vas
+    }
+    ' vas="${vas//\\/\\\\}" /etc/setup/setup.rc
+    echo Cache set to "$vas".
+  else
+    awk '
+    /last-cache/ {
+      getline
+      print $1
+    }
+    ' /etc/setup/setup.rc
+  fi
+}
+
 if [ -p /dev/stdin ]
 then
   mapfile -t pks
@@ -517,59 +617,14 @@ while (( $# ))
 do
   case "$1" in
 
-    --mirror | -m)
-      awk -i inplace '
-      1
-      /last-mirror/ {
-        getline
-        print "\t" rpc
-      }
-      ' rpc="$2" /etc/setup/setup.rc
-      shift 2
-    ;;
-
-    --cache | -c)
-      rpc=$(cygpath -aw "$2" | sed 's \\ \\\\ g')
-      awk -i inplace '
-      1
-      /last-cache/ {
-        getline
-        print "\t" rpc
-      }
-      ' rpc="$rpc" /etc/setup/setup.rc
-      shift 2
-    ;;
-
     --noscripts)
       noscripts=1
       shift
     ;;
 
-    --help)
-      printf %s "${usage[@]}"
-      exit 0
-    ;;
-
     --version)
       printf %s "${version[@]}"
-      exit 0
-    ;;
-
-    --file | -f)
-      if [[ $2 ]]
-      then
-        mf=$2
-        if [ -f "$mf" ]
-        then
-          mapfile -t pks < "$mf"
-        else
-          echo File "$mf" not found, skipping
-        fi
-        shift
-      else
-        info No file name provided, ignoring $1
-      fi
-      shift
+      exit
     ;;
 
     update)
@@ -577,17 +632,8 @@ do
       shift
     ;;
 
-    install     \
-    | remove    \
-    | download  \
-    | show      \
-    | depends   \
-    | rdepends  \
-    | list      \
-    | category  \
-    | listfiles \
-    | search    \
-    | searchall)
+    list | cache  | remove | depends | listall  | download | listfiles |\
+    show | mirror | search | install | category | rdepends | searchall )
       if [[ $command ]]
       then
         pks+=("$1")
@@ -609,6 +655,7 @@ set -a
 
 if type -t apt-$command | grep -q function
 then
+  readonly arch=${HOSTTYPE/i6/x}
   apt-$command
 else
   printf %s "${usage[@]}"
