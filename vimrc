@@ -1,3 +1,6 @@
+# Allow configuration based on filetype
+filetype on
+
 # Fix arrow keys when logged into remote machines
 set nocompatible
 
@@ -20,3 +23,6 @@ set incsearch
 set nobackup
 set nowb
 set noswapfile
+
+# Highlight overly long commit messages
+au FileType gitcommit set tw=72 | set spell | set colorcolumn=50
