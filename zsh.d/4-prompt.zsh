@@ -12,7 +12,6 @@ local Z_VCS=""
 
 precmd() {
     vcs_info
-    echo "run"
     if [[ -n ${vcs_info_msg_0_} ]]; then
         Z_VCS="{${vcs_info_msg_0_}} "
     else
