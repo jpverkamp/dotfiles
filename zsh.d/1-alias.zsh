@@ -37,10 +37,20 @@ alias http="python -m SimpleHTTPServer"
 
 # Docker aliases
 docker-kill-all () { docker ps -q | xargs docker kill }
-docker-bash () { docker exec -it $(docker ps -q | head -n 1) bash } 
+docker-bash () { docker exec -it $(docker ps -q | head -n 1) bash }
 docker-nuke () {
   docker-kill-all
   docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f;
   docker rm -v $(docker ps -a -q -f status=exited);
   docker rmi $(docker images -f "dangling=true" -q);
+}
+
+boot2docker-reset () {
+  boot2docker destroy
+  boot2docker init
+  boot2docker start
+  $(boot2docker shellinit)
+  boot2docker ssh "echo 'EXTRA_ARGS=\"--insecure-registry registry.edmodo.io\"' | sudo tee -a /var/lib/boot2docker/profile"
+  boot2docker stop
+  boot2docker start
 }
