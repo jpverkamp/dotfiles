@@ -1,7 +1,8 @@
 # Add current repo info to the prompt
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git svn
-zstyle ':vcs_info:git*' formats "%{$Z_CLR_BLUE%}%s %b%{$Z_CLR_RESET%}%m%u%c"
+zstyle ':vcs_info:git*' formats "%{$Z_CLR_BLUE%}%s %b%{$Z_CLR_RESET%}"
+zstyle ':vcs_info:git*' actionformats "%{$Z_CLR_BLUE%}%s %b-%a%{$Z_CLR_RESET%}"
 
 local Z_DATE="%D{%Y-%m-%d %H:%M}"
 local Z_DIRECTORY="%{$Z_CLR_GREEN%}%~%{$Z_CLR_RESET%}"
