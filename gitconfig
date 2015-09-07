@@ -14,6 +14,7 @@
   undo = reset HEAD~1 --mixed
   up = !git pull --rebase --prune $@ && git submodule update --init --recursive && git clean-branches
   wip = commit -am "(IN PROGRESS)"
+  wipe = !git add -A && git commit -qm 'WIPE SAVEPOINT' && git reset HEAD~1 --hard
 
 [color]
   ui = true
