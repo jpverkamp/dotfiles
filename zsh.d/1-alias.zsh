@@ -56,11 +56,8 @@ boot2docker-reset () {
 }
 
 docker-machine-reset () {
-  docker-machine rm docker || true
-  docker-machine create --driver virtualbox docker
-  docker-machine start docker
-  eval $(docker-machine env docker)
-  docker-machine ssh docker "echo 'EXTRA_ARGS=\"--insecure-registry registry.edmodo.io\"' | sudo tee -a /var/lib/boot2docker/profile"
-  docker-machine stop docker
-  docker-machine start docker
+  docker-machine rm dev || true
+  docker-machine create --driver virtualbox --engine-insecure-registry registry.edmodo.io dev
+  docker-machine start dev
+  eval $(docker-machine env dev)
 }
