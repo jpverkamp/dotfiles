@@ -15,14 +15,12 @@ args = parser.parse_args()
 
 ec2 = boto.ec2.connect_to_region('us-west-2')
 
-if not args.filters:
-    raise Exception('You must specify at least one instance')
-
-found = 0
-
 def include_instance(instance):
     if instance.state != 'running':
         return
+    
+    if not args.filters:
+        return instance
 
     for filter in args.filters:
         for tag_key in instance.tags:
