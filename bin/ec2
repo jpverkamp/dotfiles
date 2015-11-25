@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import argparse
+import boto.ec2
+import json
+import re
+import sys
+
+parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
+parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
+parser.add_argument('--limit', type = int, default = 1, help = 'How many results to report, 0 will return all')
+parser.add_argument('--output', default = 'private_ip_address', help = 'The output to fetch for each instance; json will output a json object will all of the outputs')
+parser.add_argument('filters', nargs = argparse.REMAINDER, help = 'Regular expressions to apply to each tag')
+args = parser.parse_args()
+
+ec2 = boto.ec2.connect_to_region('us-west-2')
+
+def include_instance(instance):
+    if instance.state != 'running':
+        return
+    
+    if not args.filters:
+        return instance
+
+    for filter in args.filters:
+        for tag_key in instance.tags:
+            tag_value = instance.tags[tag_key]
+            tag = '{}={}'.format(tag_key, tag_value).lower()
+
+            if re.search(filter, tag_value):
+                return instance
+
+
+def filter():
+    for reservation in ec2.get_all_instances():
+        for instance in reservation.instances:
+            if include_instance(instance):
+                yield instance
+
+for i, instance in enumerate(filter(), 1):
+    if args.output == 'json':
+        print(json.dumps(instance.__dict__, default = str))
+    else:
+        print(getattr(instance, args.output))
+
+    if args.limit and i >= args.limit:
+        break
