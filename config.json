@@ -18,6 +18,12 @@
         ]
     },
     "os=darwin": {
+        "link": {
+            "osx-settings/com.googlecode.iterm2.plist": "~/Library/Preferences/com.googlecode.iterm2.plist",
+            "osx-settings/com.sublimetext.2.plist": "~/Library/Preferences/com.sublimetext.2.plist",
+            "osx-settings/org.pqrs.Karabiner.plist": "~/Library/Preferences/org.pqrs.Karabiner.plist",
+            "osx-settings/org.pqrs.Seil.plist": "~/Library/Preferences/org.pqrs.Seil.plist"
+        },
         "init": [
             "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
             "brew install python3 tmux zsh",
