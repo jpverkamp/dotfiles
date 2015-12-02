@@ -17,7 +17,8 @@ except NameError:
    pass
 
 # Load the settings for what goes where
-with open('config.json', 'r') as fin:
+config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'config.json')
+with open(config_path, 'r') as fin:
 	config = json.load(fin)
 
 # Load settings from a previous run
