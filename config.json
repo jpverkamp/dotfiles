@@ -18,7 +18,7 @@
         ]
     },
     "os=darwin": {
-        "link": {
+        "copy": {
             "osx-settings/com.googlecode.iterm2.plist": "~/Library/Preferences/com.googlecode.iterm2.plist",
             "osx-settings/com.sublimetext.2.plist": "~/Library/Preferences/com.sublimetext.2.plist",
             "osx-settings/org.pqrs.Karabiner.plist": "~/Library/Preferences/org.pqrs.Karabiner.plist",
