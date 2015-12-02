@@ -2,7 +2,9 @@
 *.pyc
 *.bak
 
+.DS_Store
 compiled
 
 ssh/config
 ssh/config.work
+ssh/known_hosts
