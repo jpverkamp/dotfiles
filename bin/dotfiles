@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+
+from __future__ import print_function
+
+import getpass
+import imp
+import json
+import os
+import platform
+import shutil
+import sys
+
+# Fix to allow running with either python 2 or 3
+try:
+   input = raw_input
+except NameError:
+   pass
+
+# Load the settings for what goes where
+with open('config.json', 'r') as fin:
+	config = json.load(fin)
+
+# Load settings from a previous run
+system_config_path = os.path.expanduser('~/.dotfiles-config.json')
+if os.path.exists(system_config_path):
+	with open(system_config_path, 'r') as fin:
+		system_config = json.load(fin)
+else:
+	system_config = {'first_run': True}
+
+# Load our custom aes module; this won't work if we haven't already installed dotfiles
+try:
+	aes = imp.load_source('aes', os.path.expanduser('~/.bin/aes'))
+	system_config['aes_available'] = True
+except Exception as ex:
+	print('AES module not available: {}\n'.format(ex))
+	system_config['aes_available'] = False
+
+def yes_or_no(prompt, *args):
+	return input(prompt.format(*args).strip() + ' [yN] ').lower()[:1] == 'y'
+
+# Run a single block
+def run_block(name):
+	if name not in config:
+		print('skipping {}, does not exist'.format(name))
+		return
+
+	print('running {}'.format(name))
+	block = config[name]
+
+	if system_config['first_run'] and 'init' in block:
+		for cmd in block['init']:
+			print('- running init: {}'.format(cmd))
+			os.system(cmd)
+
+	if 'link' in block:
+		for src, dst in block['link'].items():
+			print('- linking {} to {}'.format(src, dst))
+			src = os.path.realpath(src)
+			dst = os.path.realpath(os.path.expanduser(dst))
+			
+			# Detect if the symlink already points to the correct place
+			if src == dst:
+				continue
+
+			# Detect if there's a folder/file in the way we have to remove
+			if os.path.exists(dst):
+				if yes_or_no('{} already exists; replace it? ', dst):
+					if os.path.isdir(dst):
+						shutil.rmtree(dst)
+					else:
+						os.remove(dst)
+				else:
+					continue
+
+			os.symlink(src, dst)
+
+	if 'copy' in block:
+		for src, dst in block['copy'].items():
+			print('- copying {} to {}'.format(src, dst))
+			src = os.path.realpath(src)
+			dst = os.path.expanduser(dst)
+			
+			if os.path.isdir(src): # TODO: Verify this works
+				for path, dirs, files in os.walk(src):
+					for file in files:
+						shutil.copy(os.path.join(src, path, file), os.path.join(dst, path, file))
+			elif os.path.isfile(src):
+			 	shutil.copy(src, dst)
+
+	if 'decrypt' in block:
+		for path in block['decrypt']:
+			if not system_config['aes_available']:
+				print('- decrypting: {} [SKIPPED: aes not available]'.format(path))
+				continue
+
+			print('- decrypting: {}'.format(path))
+			path = os.path.expanduser(path)
+			
+			if not 'encryption_key' in system_config:
+				system_config['encryption_key'] = getpass.getpass('Encryption passphrase:')
+				system_config['store_encryption_key'] = yes_or_no('Store encryption key in config file?')
+
+			os.environ['AESKEY'] = system_config['encryption_key']
+			aes.decrypt(path)
+
+	if 'update' in block:
+		for cmd in block['update']:
+			print('- running update: {}'.format(cmd))
+			os.system(cmd)
+
+	print()
+
+# Run global, then any os blocks, then any custom blocks
+
+run_block('global')
+run_block('os={}'.format(platform.system().lower()))
+
+if 'custom_blocks' not in system_config:
+	system_config['custom_blocks'] = {}
+
+for block_name in config:
+	if not block_name.startswith('option='):
+		continue
+
+	short_block_name = block_name.split('=', 1)[-1]
+
+	if not short_block_name in system_config['custom_blocks']:
+		system_config['custom_blocks'][short_block_name] = yes_or_no('Enable "{}" settings?', short_block_name)
+
+	if system_config['custom_blocks'][short_block_name]:
+		run_block(block_name)
+
+# Write any changes to the system configuration
+system_config['first_run'] = False
+if 'encryption_key' in system_config and not system_config.get('store_encryption_key', False):
+	del system_config['encryption_key']
+
+with open(system_config_path, 'w') as fout:
+	json.dump(system_config, fout, default = str, indent = 4)

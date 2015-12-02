@@ -11,7 +11,7 @@
   ci = commit
   df = diff
   lg = log -p
-  pushall '!for remote in git remote; do git push $remote; done;'
+  pushall = '!for remote in git remote; do git push $remote; done;'
   undo = reset HEAD~1 --mixed
   up = !git pull --rebase --prune $@ && git submodule update --init --recursive && git clean-branches
   wip = commit -am "(IN PROGRESS)"
