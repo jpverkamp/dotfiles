@@ -17,7 +17,8 @@ except NameError:
    pass
 
 # Load the settings for what goes where
-config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'config.json')
+ROOT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+config_path = os.path.join(ROOT_PATH, 'config.json')
 with open(config_path, 'r') as fin:
 	config = json.load(fin)
 
@@ -57,6 +58,8 @@ def run_block(name):
 	if 'link' in block:
 		for src, dst in block['link'].items():
 			print('- linking {} to {}'.format(src, dst))
+			if not os.path.isabs(src):
+				src = os.path.join(ROOT_PATH, src)
 			src = os.path.realpath(src)
 			dst = os.path.realpath(os.path.expanduser(dst))
 			
@@ -79,6 +82,8 @@ def run_block(name):
 	if 'copy' in block:
 		for src, dst in block['copy'].items():
 			print('- copying {} to {}'.format(src, dst))
+			if not os.path.isabs(src):
+				src = os.path.join(ROOT_PATH, src)
 			src = os.path.realpath(src)
 			dst = os.path.expanduser(dst)
 			
