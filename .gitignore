@@ -7,3 +7,10 @@ compiled
 
 ssh/*
 !ssh/*.aes
+
+atom/.apm/
+atom/.node-gyp/
+atom/compile-cache/
+atom/storage/
+atom/packages/
+atom/*.cson
