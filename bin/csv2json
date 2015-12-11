@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import csv
+import json
+import sys
+
+# If --parse is set, try to parse each entry as json
+def parse(thing):
+    try:
+        return json.loads(thing)
+    except:
+        return thing
+
+# Assume that headers are the first row
+reader = csv.reader(sys.stdin)
+headers = None
+for row in reader:
+    if not headers:
+        headers = row
+        continue
+
+    if '--parse' in sys.argv:
+        row = [parse(thing) for thing in row]
+
+    # Recombine the headers with each row (no one said this was saving space)
+    row = dict(zip(headers, row))
+    print(json.dumps(row, default = str))
