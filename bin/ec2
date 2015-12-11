@@ -8,17 +8,21 @@ import sys
 
 parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
 parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
+parser.add_argument('--all', action = 'store_true', default = False, help = 'Return all (equivalent to --limit 0)')
 parser.add_argument('--limit', type = int, default = 1, help = 'How many results to report, 0 will return all')
 parser.add_argument('--output', default = 'private_ip_address', help = 'The output to fetch for each instance; json will output a json object will all of the outputs')
 parser.add_argument('filters', nargs = argparse.REMAINDER, help = 'Regular expressions to apply to each tag')
 args = parser.parse_args()
+
+if args.all:
+    args.limit = 0
 
 ec2 = boto.ec2.connect_to_region('us-west-2')
 
 def include_instance(instance):
     if instance.state != 'running':
         return
-    
+
     if not args.filters:
         return instance
 
