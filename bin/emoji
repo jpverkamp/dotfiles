@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import re
+import requests
+import sys
+
+cache_path = os.path.expanduser('~/.emoji.json')
+remote_url = 'https://raw.githubusercontent.com/muan/emojilib/master/emojis.json'
+
+if not os.path.exists(cache_path):
+    with open(cache_path, 'w') as fout:
+        response = requests.get(remote_url)
+        fout.write(response.text)
+
+with open(cache_path, 'r') as fin:
+    emoji = json.load(fin)
+
+def emoji_by_keyword(keyword):
+    if keyword in emoji:
+        return emoji[keyword]['char']
+
+    for name in emoji:
+        if name == 'keys':
+            continue
+
+        if keyword in emoji[name]['keywords']:
+            return emoji[name]['char']
+
+    return keyword
+
+def emojify(string):
+    return re.sub(
+        r'\:(\w+)\:',
+        lambda m : emoji_by_keyword(m.group(1)),
+        string
+    )
+
+# Run replacement mode on stdin if no parameters
+if len(sys.argv) == 1:
+    for line in sys.stdin:
+        print(emojify(line[:-1]))
+
+# Othwise, run through the list
+else:
+    for arg in sys.argv[1:]:
+        # Single lookup mode
+        if ':' in arg:
+            print(emojify(arg), end = ' ')
+        else:
+            print(emoji_by_keyword(arg), end = ' ')
