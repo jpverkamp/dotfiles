@@ -29,7 +29,7 @@
     },
     "init": [
       "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
-      "brew install python3 tmux zsh",
+      "brew install python3 selecta tmux zsh",
       "chsh -s /bin/zsh"
     ]
   },

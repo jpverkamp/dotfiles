@@ -51,3 +51,27 @@ docker-machine-reset () {
   docker-machine start dev
   eval $(docker-machine env dev)
 }
+
+# selecta based aliases
+# source: https://gist.github.com/neilberget/1588f136847ed40afcd4
+
+# Kill a process
+alias zap="ps aux | tail -n+2 | selecta | tr -s ' ' | cut -d ' ' -f 2 | xargs kill"
+alias zap9="ps aux | tail -n+2 | selecta | tr -s ' ' | cut -d ' ' -f 2 | xargs kill -9"
+
+# cd into an arbitrarily deep subdirectory. Don't try in directories with too many subdirectories (e.g. $HOME)
+alias sd='cd $(find * -type d | selecta)'
+
+# Docker shortcuts
+alias dpicker="docker ps | tail -n+2 | selecta | cut -d' ' -f1"
+alias dbash="dpicker | xargs -I HASH exec -it HASH bash"
+alias dstop="dpicker | xargs docker rm -f"
+alias dtail="dpicker | xargs docker logs -f"
+alias dtop="dpicker | xargs docker top"
+alias dinspect="dpicker | xargs docker inspect"
+
+# Run a make target
+maketargets() {
+  make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'
+}
+alias makes="maketargets | selecta | xargs make"
