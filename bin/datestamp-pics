@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import argparse
+import datetime
+import exifread
+import os
+import sys
+import time
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-n', '--name', help = 'the name to insert into files')
+parser.add_argument('--dry-run', action = 'store_true', help = 'don\'t actually rename files')
+parser.add_argument('--format', default = '{year}-{month}-{day} {name} {filename}.{extension}')
+args = parser.parse_args()
+
+name = args.name
+
+# Sanity check that a name was supplied if it's part of the format string
+if '{name}' in args.format and not args.name:
+	print('Attempting to use unset name, don\'t do that')
+	sys.exit(0)
+
+# Loop through all files in the current directory, skipping dot files
+for path in os.listdir('.'):
+	if path.startswith('.'):
+		continue
+
+	filename, extension = path.rsplit('.', 1)
+	extension = extension.lower()
+	date = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d')
+	
+	# Date defaults to system modification time, then uses EXIF dates if earlier
+	try:
+		with open(path, 'rb') as fin:
+			tags = exifread.process_file(fin)
+
+		for key in tags:
+			if 'date' in key.lower():
+				val = str(tags[key])
+				if val < date:
+					date = val
+	except:
+		pass
+
+	# Assume that format is YYYY-MM-DD etc
+	year = date[0:4]
+	month = date[5:7]
+	day = date[8:10]
+
+	new_path = args.format.format(**globals())
+
+	# Always print the rename, only actually do it if we're not in a dry run
+	print(path, '-->', new_path)
+	if not args.dry_run:
+		os.rename(path, new_path)
+
