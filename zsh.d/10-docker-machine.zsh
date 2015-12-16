@@ -1,1 +1,1 @@
-eval $(docker-machine env dev 2&>1 > /dev/null)
+eval $(docker-machine env dev) > /dev/null
