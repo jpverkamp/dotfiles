@@ -10,7 +10,10 @@ ssh/*
 
 atom/.apm/
 atom/.node-gyp/
+atom/blob-store/
 atom/compile-cache/
 atom/storage/
 atom/packages/
 atom/*.cson
+
+bin/atom
