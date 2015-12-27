@@ -75,3 +75,10 @@ maketargets() {
   make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'
 }
 alias makes="maketargets | selecta | xargs make"
+
+# OSX specific aliases
+if [[ `uname` == 'Darwin' ]]
+then
+    alias atom="/Applications/Atom.app/Contents/MacOS/Atom"
+    alias vlc="/Applications/VLC.app/Contents/MacOS/VLC"
+fi
