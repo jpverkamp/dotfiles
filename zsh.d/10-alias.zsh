@@ -75,3 +75,16 @@ maketargets() {
   make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'
 }
 alias makes="maketargets | selecta | xargs make"
+
+# https://apple.stackexchange.com/questions/15318/using-terminal-to-copy-a-file-to-clipboard
+pbcopy-file() {
+    osascript \
+        -e 'on run args' \
+        -e 'set the clipboard to POSIX file (first item of args)' \
+        -e 'end' \
+        "$@"
+}
+
+gif() {
+    pbcopy-file "`find ~/Dropbox/gifs -type f | selecta`"
+}
