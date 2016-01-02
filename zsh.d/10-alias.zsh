@@ -76,15 +76,22 @@ maketargets() {
 }
 alias makes="maketargets | selecta | xargs make"
 
-# https://apple.stackexchange.com/questions/15318/using-terminal-to-copy-a-file-to-clipboard
-pbcopy-file() {
-    osascript \
-        -e 'on run args' \
-        -e 'set the clipboard to POSIX file (first item of args)' \
-        -e 'end' \
-        "$@"
-}
+# OSX specific aliases
+if [[ `uname` == 'Darwin' ]]
+then
+    alias atom="/Applications/Atom.app/Contents/MacOS/Atom"
+    alias vlc="/Applications/VLC.app/Contents/MacOS/VLC"
 
-gif() {
-    pbcopy-file "`find ~/Dropbox/gifs -type f | selecta`"
-}
+    # https://apple.stackexchange.com/questions/15318/using-terminal-to-copy-a-file-to-clipboard
+    pbcopy-file() {
+        osascript \
+            -e 'on run args' \
+            -e 'set the clipboard to POSIX file (first item of args)' \
+            -e 'end' \
+            "$@"
+    }
+
+    gif() {
+        pbcopy-file "`find ~/Dropbox/gifs -type f | selecta`"
+    }
+fi

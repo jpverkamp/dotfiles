@@ -39,8 +39,7 @@
       "chsh -s /bin/zsh"
     ],
     "link": {
-      "atom/keymap.cson.linux": "atom/keymap.cson",
-      "/Applications/Atom.app/Contents/MacOS/Atom": "bin/atom"
+      "atom/keymap.cson.linux": "atom/keymap.cson"
     }
   },
   "option=work": {
