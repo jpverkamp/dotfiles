@@ -94,4 +94,8 @@ then
     gif() {
         pbcopy-file "`find ~/Dropbox/gifs -type f | selecta`"
     }
+
+    pbuni() {
+        uni $@ | selecta | cut -f 1 | tr -d '\n' | pbcopy
+    }
 fi
