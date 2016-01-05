@@ -16,4 +16,5 @@ atom/storage/
 atom/packages/
 atom/*.cson
 
-bin/atom
+# OSX specific links
+bin/vlc

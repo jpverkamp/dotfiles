@@ -25,7 +25,8 @@
       "osx-settings/org.pqrs.Seil.plist": "~/Library/Preferences/org.pqrs.Seil.plist"
     },
     "link": {
-      "atom/keymap.cson.mac": "atom/keymap.cson"
+      "atom/keymap.cson.mac": "atom/keymap.cson",
+      "/Applications/VLC.app/Contents/MacOS/VLC": "bin/vlc"
     },
     "init": [
       "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
