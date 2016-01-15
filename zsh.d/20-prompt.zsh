@@ -38,3 +38,10 @@ function zsh_add_newline {
     echo ""
 }
 preexec_functions+='zsh_add_newline'
+
+# Display the current time on the right side of the prompt
+RPROMPT='[%D{%L:%M:%S %p}]'
+TMOUT=1
+TRAPALRM() {
+    zle reset-prompt
+}
