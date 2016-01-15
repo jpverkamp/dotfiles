@@ -47,7 +47,7 @@ docker-nuke () {
 
 docker-machine-reset () {
   docker-machine rm dev || true
-  docker-machine create --driver virtualbox --engine-insecure-registry registry.edmodo.io dev
+  docker-machine create --driver virtualbox --virtualbox-disk-size "100000" --engine-insecure-registry registry.edmodo.io dev
   docker-machine start dev
   eval $(docker-machine env dev)
 }
