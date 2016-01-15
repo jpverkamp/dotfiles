@@ -13,6 +13,7 @@
   lg = log -p
   pushall = '!for remote in git remote; do git push $remote; done;'
   pushme = push origin HEAD
+  rebaseme = !TAG=$(git rev-parse --abbrev-ref HEAD) && git co master && git up && git co $TAG && git rebase master
   undo = reset HEAD~1 --mixed
   up = !git pull --rebase --prune $@ && git submodule update --init --recursive && git clean-branches
   wip = commit -am "(IN PROGRESS)"
