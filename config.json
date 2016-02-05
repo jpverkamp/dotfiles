@@ -26,6 +26,7 @@
     },
     "link": {
       "atom/keymap.cson.mac": "atom/keymap.cson",
+      "hammerspoon": "~/.hammerspoon",
       "/Applications/VLC.app/Contents/MacOS/VLC": "bin/vlc"
     },
     "init": [
