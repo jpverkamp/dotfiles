@@ -35,6 +35,9 @@ alias blog="racket ~/Projects/blog-generator/blog.rkt"
 # Simple HTTP server
 alias http="python -m SimpleHTTPServer"
 
+# Grep (allthethings)
+alias grepall="find . -type f -print0 | xargs -0 grep"
+
 # Docker aliases
 docker-kill-all () { docker ps -q | xargs docker kill }
 docker-bash () { docker exec -it $(docker ps -q | head -n 1) bash }
