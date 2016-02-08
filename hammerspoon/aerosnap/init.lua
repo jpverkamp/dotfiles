@@ -50,6 +50,7 @@ hs.hotkey.bind({"cmd", "ctrl"}, "Up", function()
     aerosnap_move_window(bounds.x, bounds.y, bounds.w, bounds.h)
 end)
 
+-- Restore the last saved window configuration for a window (basically, a one level undo)
 hs.hotkey.bind({"cmd", "ctrl"}, "Down", function()
     local window, frame, bounds = aerosnap_get_parameters()
 
