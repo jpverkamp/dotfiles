@@ -62,6 +62,7 @@ aerosnap("pad5", function(bounds) return bounds.x, bounds.y, bounds.w, bounds.h 
 hs.hotkey.bind({"cmd", "ctrl"}, "down", function()
     local window, frame, bounds = aerosnap_get_parameters()
 
+    saved_window_sizes = saved_window_sizes or {}
     old_bounds = saved_window_sizes[window:id()]
     if old_bounds ~= nil then
         aerosnap_move_window(old_bounds.x, old_bounds.y, old_bounds.w, old_bounds.h)
