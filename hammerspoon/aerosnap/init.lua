@@ -27,29 +27,39 @@ function aerosnap_save_window()
     saved_window_sizes[window:id()] = {x = frame.x, y = frame.y, w = frame.w, h = frame.h}
 end
 
--- Aerosnap move window to the left half
-hs.hotkey.bind({"cmd", "ctrl"}, "Left", function()
-    local window, frame, bounds = aerosnap_get_parameters()
-    aerosnap_save_window()
-    aerosnap_move_window(bounds.x, bounds.y, bounds.w / 2, bounds.h)
-end)
+-- Aerosnap move windows around
+function aerosnap(key, bounds_function)
+    hs.hotkey.bind({"cmd", "ctrl"}, key, function()
+        local window, frame, bounds = aerosnap_get_parameters()
+        aerosnap_save_window()
 
--- Aerosnap move window to the right half
-hs.hotkey.bind({"cmd", "ctrl"}, "Right", function()
-    local window, frame, bounds = aerosnap_get_parameters()
-    aerosnap_save_window()
-    aerosnap_move_window(bounds.x + bounds.w / 2, bounds.y, bounds.w / 2, bounds.h)
-end)
+        x, y, w, h = bounds_function(bounds)
+        aerosnap_move_window(x, y, w, h)
+    end)
+end
 
--- Aerosnap maximize current window, saving size to restore
-hs.hotkey.bind({"cmd", "ctrl"}, "Up", function()
-    local window, frame, bounds = aerosnap_get_parameters()
-    aerosnap_save_window()
-    aerosnap_move_window(bounds.x, bounds.y, bounds.w, bounds.h)
-end)
+-- Left/right half on keypad, maximize with up
+aerosnap("left", function(bounds) return bounds.x, bounds.y, bounds.w / 2, bounds.h end)
+aerosnap("right", function(bounds) return bounds.x + bounds.w / 2, bounds.y, bounds.w / 2, bounds.h end)
+
+-- Half screens on numpad
+aerosnap("pad8", function(bounds) return bounds.x, bounds.y, bounds.w, bounds.h / 2 end)
+aerosnap("pad4", function(bounds) return bounds.x, bounds.y, bounds.w / 2, bounds.h end)
+aerosnap("pad6", function(bounds) return bounds.x + bounds.w / 2, bounds.y, bounds.w / 2, bounds.h end)
+aerosnap("pad2", function(bounds) return bounds.x, bounds.y + bounds.h / 2, bounds.w, bounds.h / 2 end)
+
+-- Quarter screens no numpad
+aerosnap("pad7", function(bounds) return bounds.x, bounds.y, bounds.w / 2, bounds.h / 2 end)
+aerosnap("pad9", function(bounds) return bounds.x + bounds.w / 2, bounds.y, bounds.w / 2, bounds.h / 2 end)
+aerosnap("pad1", function(bounds) return bounds.x, bounds.y + bounds.h / 2, bounds.w / 2, bounds.h / 2 end)
+aerosnap("pad3", function(bounds) return bounds.x + bounds.w / 2, bounds.y + bounds.h / 2, bounds.w / 2, bounds.h / 2 end)
+
+-- Maximum with up arrow or 5 on numpad
+aerosnap("up", function(bounds) return bounds.x, bounds.y, bounds.w, bounds.h end)
+aerosnap("pad5", function(bounds) return bounds.x, bounds.y, bounds.w, bounds.h end)
 
 -- Restore the last saved window configuration for a window (basically, a one level undo)
-hs.hotkey.bind({"cmd", "ctrl"}, "Down", function()
+hs.hotkey.bind({"cmd", "ctrl"}, "down", function()
     local window, frame, bounds = aerosnap_get_parameters()
 
     old_bounds = saved_window_sizes[window:id()]
