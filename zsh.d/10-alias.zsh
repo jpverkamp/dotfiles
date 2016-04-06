@@ -55,6 +55,17 @@ docker-machine-reset () {
   eval $(docker-machine env dev)
 }
 
+# Wrap docker to make sure it's running and start it if it's not
+docker () {
+    command docker ps 2>1 > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Starting docker..."
+        docker-machine start dev
+        eval $(docker-machine env dev)
+    fi
+    command docker $@
+}
+
 # selecta based aliases
 # source: https://gist.github.com/neilberget/1588f136847ed40afcd4
 
