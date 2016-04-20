@@ -62,6 +62,7 @@ assert-docker() {
         echo "Starting docker..."
         docker-machine start dev
         eval $(docker-machine env dev)
+        echo
     fi
 }
 
