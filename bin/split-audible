@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--audible-key', required = True, help = 'Audible activation key')
+parser.add_argument('--generate-mp3', action = 'store_true', help = 'Transcode to mp3 rather than keeping mp4')
+parser.add_argument('-f', '--filename', required = True, help = 'Input filename')
+args = parser.parse_args()
+
+def run(cmd, **kwargs):
+    cmd = cmd.format(**kwargs)
+    print('>>>', cmd)
+
+    return subprocess.run(
+        cmd,
+        shell = True,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.STDOUT,
+    ).stdout.decode()
+
+# Parse the metadata
+raw_metadata = run('ffmpeg -activation_bytes {audible_key} -i "{filename}"',
+    audible_key = args.audible_key,
+    filename = args.filename,
+)
+
+section = 'Metadata'
+book = {}
+current_chapter = {}
+
+for line in raw_metadata.split('\n'):
+    line = line.strip()
+
+    if line.startswith('Duration'):
+        section = 'Duration'
+        book['chapters'] = []
+
+    elif section == 'Metadata' and ':' in line:
+        key, value = line.split(':', 1)
+        if key.strip() and value.strip():
+            book[key.strip()] = value.strip()
+
+    elif section == 'Duration' and line.startswith('Chapter'):
+        if current_chapter:
+            book['chapters'].append(current_chapter)
+
+        current_chapter = {
+            'index': int(re.search(r'Chapter #0:(\d+):', line).group(1)),
+            'start_time': float(re.search(r'start (\d+(\.\d+)?)', line).group(1)),
+            'end_time': float(re.search(r'end (\d+(\.\d+)?)', line).group(1)),
+        }
+
+    elif section == 'Duration' and ':' in line:
+        key, value = line.split(':', 1)
+        if key.strip() and value.strip():
+            current_chapter[key.strip()] = value.strip()
+
+if current_chapter:
+    book['chapters'].append(current_chapter)
+
+# Split into chapters
+for index, chapter in enumerate(book['chapters'], 1):
+    output_filename = '{index:03d} - {book_title} - {chapter_title}.{extension}'.format(
+        index = index,
+        book_title = book['title'],
+        chapter_title = chapter['title'],
+        extension = 'mp3' if args.generate_mp3 else 'mp4'
+    )
+
+    print(output_filename)
+
+    if args.generate_mp3:
+        codec_options = '-codec:a libmp3lame -q:a 6 -vsync 2'
+    else:
+        codec_options = '-acodec copy'
+
+    run('ffmpeg -y -activation_bytes {audible_key} -i "{input_filename}" -ss {start_time} -to {end_time} {codec_options} "{output_filename}"',
+        audible_key = args.audible_key,
+        input_filename = args.filename,
+        start_time = chapter['start_time'],
+        end_time = chapter['end_time'],
+        output_filename = output_filename,
+        codec_options = codec_options,
+    )
