@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import datetime
+import json
+import speedtest_cli
+import subprocess
+
+output = subprocess.check_output('speedtest-cli --simple', shell = True)
+results = {'time': str(datetime.datetime.now())}
+
+for line in output.split('\n'):
+    if not line:
+        continue
+
+    key, val = line.split(': ')
+
+    results[key.lower()] = val
+
+print(json.dumps(results))
