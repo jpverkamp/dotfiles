@@ -18,3 +18,6 @@ atom/*.cson
 
 # OSX specific links
 bin/vlc
+
+fish/fish_history
+fish/fishd.*
