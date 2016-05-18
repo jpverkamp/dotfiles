@@ -3,6 +3,7 @@
     "link": {
       "ssh": "~/.ssh",
       "atom": "~/.atom",
+      "fish": "~/.config/fish",
       "gitconfig": "~/.gitconfig",
       "lein": "~/.lein",
       "bin": "~/.bin",
