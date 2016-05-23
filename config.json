@@ -32,14 +32,14 @@
     },
     "init": [
       "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
-      "brew install python3 selecta tmux zsh",
+      "brew install python3 selecta slurm the-silver-searcher tmux zsh",
       "chsh -s /bin/zsh",
       "defaults write -g ApplePressAndHoldEnabled -bool false"
     ]
   },
   "os=linux": {
     "init": [
-      "sudo apt-get install git python3 python3-pip zsh",
+      "sudo apt-get install git python3 python3-pip slurm silversearcher-ag zsh",
       "chsh -s /bin/zsh"
     ],
     "link": {
