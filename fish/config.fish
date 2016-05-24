@@ -9,3 +9,6 @@ set -U fish_user_paths $fish_user_paths $GOPATH/bin
 function whitespace_after_prompt --on-event fish_preexec
     printf "\n"
 end
+
+# Directory list in cyan rather than a hard to see blue
+set -Ux LSCOLORS gxfxcxdxbxegedabagacad
