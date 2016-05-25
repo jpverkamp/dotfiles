@@ -24,7 +24,7 @@ function fish_prompt
     if test "$git_branch" != ""
         set_color white
         printf " {"
-        set_color blue
+        set_color cyan
         printf "git $git_branch"
         set_color white
         printf "}"
