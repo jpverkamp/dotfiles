@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import os
+import queue
+import subprocess
+import sys
+import threading
+
+sync_queue = queue.Queue()
+
+def do_sync():
+    while True:
+        path = sync_queue.get()
+        local_path = path.replace(local_directory, '').lstrip('/')
+        remote_path = remote_directory.rstrip('/') + '/' + local_path
+
+        print('[{} remaining] {} ... '.format(sync_queue.qsize(), local_path), end = '')
+        sys.stdout.flush()
+
+        subprocess.check_call('scp "{local_path}" "{remote_host}:{remote_path}"'.format(
+            local_path = local_path,
+            remote_host = remote_host,
+            remote_path = remote_path
+        ), shell = True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+
+        print('done')
+
+def sync_command(command):
+    process = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE)
+    for line in process.stdout:
+        for file in line.decode().strip().split():
+            sync_queue.put(file)
+
+if __name__ == '__main__':
+    try:
+        remote_host, remote_directory = sys.argv[1].split(':')
+    except:
+        print('Usage: sync HOST:PATH')
+        sys.exit(0)
+
+    local_directory = os.getcwd()
+
+    print('Syncing files from {local_directory} to {remote_host}:{remote_directory}\n'.format(
+        local_directory = local_directory,
+        remote_host = remote_host,
+        remote_directory = remote_directory
+    ))
+
+    # Start up the sync thread
+    sync_thread = threading.Thread(target = do_sync)
+    sync_thread.daemon = True
+    sync_thread.start()
+
+    # Sync any differences on the current branch (first changed, then new files)
+    sync_command('git diff --name-only master')
+    sync_command('git ls-files --others --exclude-standard')
+
+    # Sync any changes to files as they happen
+    sync_command('fswatch -r -e ".git" .')
