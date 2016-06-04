@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+
+import bs4
+import json
+import requests
+
+def parse_table(table):
+    '''Given soup <table>, extract the rows'''
+
+    rows = []
+
+    for tr in table.find_all('tr'):
+        if not tr.find_all('td'):
+            continue
+
+        rows.append([
+            td.text.strip()
+            for td in tr.find_all('td')
+            if td.text.strip()
+        ])
+
+    return rows
+
+def lol_to_lod(table, transpose = False):
+    '''Convert a list of lists with headers into a list of dicts.'''
+
+    if transpose:
+        table = list(zip(*table))
+
+    headers = table[0]
+
+    return [
+        dict(zip(headers, row))
+        for row in table[1:]
+    ]
+
+def tables_for(endpoint):
+    response = requests.get('http://192.168.100.1' + endpoint)
+    soup = bs4.BeautifulSoup(response.text, 'lxml')
+    return [parse_table(table) for table in soup.find_all('table')]
+
+# --- Individual pages ---
+
+def status_page():
+    tables = tables_for('/indexData.htm')
+
+    result = {}
+    result.update(lol_to_lod(tables[0], transpose = True)[0])
+    result.update(lol_to_lod(tables[1], transpose = True)[0])
+    return result
+
+def signal_page():
+    tables = tables_for('/cmSignalData.htm')
+    tables[0][4][0] = 'Power Level'
+    del tables[0][-1]
+    del tables[0][-1][1]
+
+    return {
+        'downstream': lol_to_lod(tables[0], transpose = True),
+        'upstream': lol_to_lod(tables[2], transpose = True),
+        'codewords': lol_to_lod(tables[3], transpose = True),
+    }
+
+def addresses_page():
+    tables = tables_for('/cmAddressData.htm')
+    tables[1].insert(0, ['Index', 'MAC Address', 'Status'])
+
+    result = lol_to_lod(tables[0], transpose = True)[0]
+    result['clients'] = lol_to_lod(tables[1])
+
+    return result
+
+def configuration_page():
+    tables = tables_for('/cmConfigData.htm')
+    return lol_to_lod(tables[0][:-1], transpose = True)
+
+def logs_page():
+    tables = tables_for('/cmLogsData.htm')
+    tables[0].insert(0, ['Time', 'Priority', 'Code', 'Message'])
+    return lol_to_lod(tables[0])
+
+results = {
+    'status': status_page(),
+    'signal': signal_page(),
+    'addresses': addresses_page(),
+    'configuration': configuration_page(),
+    'logs': logs_page(),
+}
+
+print(json.dumps(results))
