@@ -1,6 +1,4 @@
 function docker
-    assert-docker
-
     if test (count $argv) -eq 0
         command docker
 
