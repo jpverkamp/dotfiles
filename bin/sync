@@ -17,13 +17,16 @@ def do_sync():
         print('[{} remaining] {} ... '.format(sync_queue.qsize(), local_path), end = '')
         sys.stdout.flush()
 
-        subprocess.check_call('scp "{local_path}" "{remote_host}:{remote_path}"'.format(
-            local_path = local_path,
-            remote_host = remote_host,
-            remote_path = remote_path
-        ), shell = True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
-
-        print('done')
+        try:
+            subprocess.check_call('scp "{local_path}" "{remote_host}:{remote_path}"'.format(
+                local_path = local_path,
+                remote_host = remote_host,
+                remote_path = remote_path
+            ), shell = True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+        except Exception as ex:
+            print('Failed to copy "{local_path}": {exception}'.format(local_path = local_path, exception = ex))
+        finally:
+            print('done')
 
 def sync_command(command):
     process = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE)
