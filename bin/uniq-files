@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+
+import collections
+import hashlib
+import sys
+
+files = collections.defaultdict(set)
+
+for path in sys.stdin:
+    path = path.strip()
+    with open(path, 'rb') as fin:
+        hash = hashlib.sha256(fin.read()).hexdigest()
+        files[hash].add(path)
+
+for hash in files:
+    print(len(files[hash]), hash, list(files[hash])[0])
