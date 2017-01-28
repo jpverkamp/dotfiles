@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+
+import argparse
+import collections
+import hashlib
+import humanize
+import functools
+import os
+import progressbar
+import sys
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-c', '--chunk-size', type = int, default = 65536, help = 'bytes to read per chunk when hashing; default = 65k')
+parser.add_argument('-f', '--fast', default = False, action = 'store_true', help = 'only hash the first chunk of each file')
+parser.add_argument('-m', '--mode', type = str, default = 'ask', help = 'ask (default) on each; link creates symlinks to first; delete all but first; print')
+parser.add_argument('-v', '--verbose', default = False, action = 'store_true', help = 'verbose mode')
+parser.add_argument('path', type = str, default = '.', help = 'root directory to scan; default is the current directory')
+
+args = parser.parse_args()
+
+if not args.mode.lower()[0] in 'ldap':
+    raise Exception('Unknown mode: {}'.format(args.mode))
+
+def sha256(path):
+    digest = hashlib.sha256()
+
+    with open(path, 'rb') as f:
+        while True:
+            chunk = f.read(args.chunk_size)
+            if chunk:
+                digest.update(chunk)
+            else:
+                break
+
+            if args.fast:
+                break
+
+    return digest.hexdigest()
+
+# --- Prefetch a list of all files to hash so the progress bar works better ---
+
+if args.verbose: print('Listing files... ', end = '')
+
+paths = [
+    os.path.join(path, file)
+    for path, _, files in os.walk(args.path)
+    for file in files
+    if not os.path.islink(os.path.join(path, file))
+]
+
+if args.verbose: print('done\n')
+
+# --- Hash all of the files ---
+
+if args.verbose: print('Generating hashes...')
+hashes = collections.defaultdict(list)
+
+if args.verbose:
+    bar = progressbar.ProgressBar()
+else:
+    bar = iter
+
+for path in bar(paths):
+    hash = sha256(path)
+    hashes[hash].append(path)
+
+# --- Remove any files from the hashes if there is only one ---
+
+if args.verbose: print('\nRemoving singletons... ', end = '')
+singletons = set()
+
+for hash in hashes:
+    if len(hashes[hash]) <= 1:
+        singletons.add(hash)
+
+for hash in singletons:
+    del hashes[hash]
+
+if args.verbose: print('done\n')
+
+# --- Print out duplicates ---
+
+if args.verbose: print(len(hashes), 'duplicate hashes')
+
+for hash in hashes:
+    if args.mode.lower()[0] in 'ap': # ask or print
+        print(hash)
+        for path in hashes[hash]:
+            print('-', path)
+        print()
+
+    if args.mode.lower()[0] == 'a': # ask
+        while True:
+            file_mode = input('Mode (? for options): ')
+            if not file_mode:
+                continue
+
+            set_all = file_mode.lower().endswith('all')
+            file_mode = file_mode.lower()[0]
+
+            if file_mode in 'dlps':
+                break
+            elif file_mode in '?h':
+                print('''- link: creates symlinks to first
+- delete: all but first
+- skip: ignore this set
+- quit
+
+add all to the end to save for all (ex: delete all)
+''')
+            elif file_mode in 'q':
+                sys.exit(0)
+
+        if set_all:
+            args.mode = file_mode
+    else:
+        file_mode = args.mode.lower()[0]
+
+    if file_mode == 'd': # delete
+        for path in hashes[hash][1:]:
+            os.remove(path)
+
+    elif file_mode == 'l': # link
+        target = hashes[hash][0]
+        for path in hashes[hash][1:]:
+            os.remove(path)
+            os.symlink(target, path)
+
+    elif file_mode == 'p' or file_mode == 's': # print/skip
+        pass
+
+    else:
+        raise Exception('Unknown mode: {}'.format(args.mode))
+
+# --- Calculate how much space you can save by deleting duplicate files ---
+
+print('Calculating size savings... ', end = '')
+total_duplicate_size = 0
+
+for hash in hashes:
+    duplicate_size = os.path.getsize(hashes[hash][0])
+    duplicates = len(hashes[hash]) - 1
+    total_duplicate_size += duplicate_size * duplicates
+
+print(humanize.naturalsize(total_duplicate_size))
