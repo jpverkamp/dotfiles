@@ -41,7 +41,7 @@ for instance in ec2.instances.filter(Filters = [{'Name': 'tag:Name', 'Values': [
     if args.output == 'json':
         print(json.dumps({
             field: getattr(instance, field)
-            for field in fields
+            for field in known_fields
         }, default = str))
     else:
         print(getattr(instance, args.output))
