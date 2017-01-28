@@ -1,51 +1,50 @@
 #!/usr/bin/env python3
 
 import argparse
-import boto.ec2
+import boto3
 import json
 import re
 import sys
 
+known_fields = [
+    'ami_launch_index', 'architecture', 'block_device_mappings', 'client_token',
+    'ebs_optimized', 'ena_support', 'hypervisor', 'iam_instance_profile', 'id',
+    'image_id', 'instance_id', 'instance_lifecycle', 'instance_type',
+    'kernel_id', 'key_name', 'launch_time', 'monitoring',
+    'network_interfaces_attribute', 'placement', 'platform', 'private_dns_name',
+    'private_ip_address', 'product_codes', 'public_dns_name',
+    'public_ip_address', 'ramdisk_id', 'root_device_name', 'root_device_type',
+    'security_groups', 'source_dest_check', 'spot_instance_request_id',
+    'sriov_net_support', 'state', 'state_reason', 'state_transition_reason',
+    'subnet_id', 'tags', 'virtualization_type', 'vpc_id'
+]
+
 parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
+parser.add_argument('--ip', default = False, action = 'store_true', help = 'Just print out IP address (alias --first --output private_ip_address)')
 parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
-parser.add_argument('--all', action = 'store_true', default = False, help = 'Return all (equivalent to --limit 0)')
-parser.add_argument('--limit', type = int, default = 1, help = 'How many results to report, 0 will return all')
-parser.add_argument('--output', default = 'private_ip_address', help = 'The output to fetch for each instance; json will output a json object will all of the outputs')
-parser.add_argument('filters', nargs = argparse.REMAINDER, help = 'Regular expressions to apply to each tag')
+parser.add_argument('--output', default = 'json', choices = known_fields + ['json'], help = 'The field to return; use json to return all fields')
+parser.add_argument('--first', default = False, action = 'store_true', help = 'Only return the first instance and exit')
+parser.add_argument('server_name', type = str, help = 'Substring of server names')
 args = parser.parse_args()
 
-if args.all:
-    args.limit = 0
+if args.ip:
+    args.output = 'private_ip_address'
+    args.first = True
 
-ec2 = boto.ec2.connect_to_region('us-west-2')
+if args.output != 'json' and args.output not in known_fields:
+    raise Exception('Unknown field: {}'.format(args.output))
 
-def include_instance(instance):
-    if instance.state != 'running':
-        return
+args.server_name = '*{}*'.format(args.server_name)
 
-    if not args.filters:
-        return instance
-
-    for filter in args.filters:
-        for tag_key in instance.tags:
-            tag_value = instance.tags[tag_key]
-            tag = '{}={}'.format(tag_key, tag_value).lower()
-
-            if re.search(filter, tag_value):
-                return instance
-
-
-def filter():
-    for reservation in ec2.get_all_instances():
-        for instance in reservation.instances:
-            if include_instance(instance):
-                yield instance
-
-for i, instance in enumerate(filter(), 1):
+ec2 = boto3.resource('ec2', region_name = args.region)
+for instance in ec2.instances.filter(Filters = [{'Name': 'tag:Name', 'Values': [args.server_name]}]):
     if args.output == 'json':
-        print(json.dumps(instance.__dict__, default = str))
+        print(json.dumps({
+            field: getattr(instance, field)
+            for field in fields
+        }, default = str))
     else:
         print(getattr(instance, args.output))
 
-    if args.limit and i >= args.limit:
+    if args.first:
         break
