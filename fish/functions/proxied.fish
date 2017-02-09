@@ -3,7 +3,7 @@ function proxied
         set -lx http_proxy localhost:7770
         set -lx https_proxy localhost:7770
 
-        eval $argv
+        eval (string escape -- $argv)
     else
         echo "Polipo is not running"
     end
