@@ -21,6 +21,7 @@ known_fields = [
 
 parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
 parser.add_argument('--ip', default = False, action = 'store_true', help = 'Just print out IP address (alias --first --output private_ip_address)')
+parser.add_argument('--exact', default = False, action = 'store_true', help = 'Only apply an exact match, don\'t include supersets of the given name')
 parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
 parser.add_argument('--output', default = 'json', choices = known_fields + ['json'], help = 'The field to return; use json to return all fields')
 parser.add_argument('--first', default = False, action = 'store_true', help = 'Only return the first instance and exit')
@@ -34,7 +35,8 @@ if args.ip:
 if args.output != 'json' and args.output not in known_fields:
     raise Exception('Unknown field: {}'.format(args.output))
 
-args.server_name = '*{}*'.format(args.server_name)
+if not args.exact:
+    args.server_name = '*{}*'.format(args.server_name)
 
 ec2 = boto3.resource('ec2', region_name = args.region)
 filters = [
