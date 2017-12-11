@@ -12,3 +12,9 @@ end
 
 # Directory list in cyan rather than a hard to see blue
 set -gx LSCOLORS gxfxcxdxbxegedabagacad
+
+
+# Ruby yo
+set PATH $HOME/.rbenv/bin $PATH
+set PATH $HOME/.rbenv/shims $PATH
+rbenv rehash >/dev/null ^&1

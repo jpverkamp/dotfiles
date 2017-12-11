@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import argparse
+import hashlib
+import fileinput
+import sys
+
+algorithms = {algorithm.lower() for algorithm in hashlib.algorithms_available}
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--hash', default = 'sha256', choices = algorithms, help = 'Hash to set, any hash in hashlib can be used')
+parser.add_argument('--list', action = 'store_true', help = 'Display available hashes and exit')
+parser.add_argument('files', metavar='FILE', nargs='*', help='Files to read, if empty use stdin')
+args = parser.parse_args()
+
+if args.list:
+    for algorithm in sorted(algorithms):
+        print(algorithm)
+    sys.exit(0)
+
+def hash(line):
+    if isinstance(line, bytes):
+        pass
+    elif isinstance(line, str):
+        line = line.encode()
+    else:
+        line = repr(line).encode()
+
+    hasher = hashlib.new(args.hash)
+    hasher.update(line)
+    return hasher.hexdigest()
+
+inputs = set()
+
+for line in fileinput.input(args.files):
+    line = line.strip()
+    if line:
+        inputs.add(line)
+
+hashed = {(hash(line), line) for line in inputs}
+
+for _, line in sorted(hashed):
+    print(line)

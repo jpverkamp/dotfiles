@@ -55,8 +55,9 @@ if __name__ == '__main__':
     sync_thread.start()
 
     # Sync any differences on the current branch (first changed, then new files)
-    sync_command('git diff --name-only master')
-    sync_command('git ls-files --others --exclude-standard')
+    if '--skip' not in sys.argv:
+        sync_command('git diff --name-only master')
+        sync_command('git ls-files --others --exclude-standard')
 
     # Sync any changes to files as they happen
     sync_command('fswatch -r -e ".git" .')

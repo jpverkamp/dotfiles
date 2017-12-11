@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec env HTTP_PROXY=192.168.0.50:7770 env HTTPS_PROXY=192.168.0.50:7770 "$@"

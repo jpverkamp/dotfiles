@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import speedtest_cli
 import subprocess
 
 output = subprocess.check_output('speedtest-cli --simple', shell = True)

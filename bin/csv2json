@@ -12,7 +12,7 @@ def parse(thing):
         return thing
 
 # Assume that headers are the first row
-reader = csv.reader(sys.stdin)
+reader = csv.reader(sys.stdin, delimiter = ',' if not '--tab' in sys.argv else '\t')
 headers = None
 for row in reader:
     if not headers:

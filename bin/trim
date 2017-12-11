@@ -1,0 +1,4 @@
+#!/bin/bash
+# https://unix.stackexchange.com/questions/102008/how-do-i-trim-leading-and-trailing-whitespace-from-each-line-of-some-output
+
+awk '{$1=$1};1'
