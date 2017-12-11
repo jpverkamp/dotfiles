@@ -14,8 +14,7 @@
       "tmux.conf": "~/.tmux.conf"
     },
     "decrypt": [
-      "~/.ssh/config.aes",
-      "~/.ssh/config.work.aes"
+      "~/.ssh/config.aes"
     ]
   },
   "os=darwin": {
