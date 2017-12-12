@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+import operator
+import os
+import subprocess
+import sys
+
+arg_parser = argparse.ArgumentParser('Automatically set environment variables based on a condition')
+arg_parser.add_argument('-c', '--condition', default = None, help = 'If this is set and returns true, set proxy variables; if not set, assume true')
+arg_parser.add_argument('-x', '--invert', action = 'store_true', help = 'Invert the conditional so that proxy variables on false')
+arg_parser.add_argument('-p', '--prefix', default = 'AUTOPROXY_', help = 'The prefix of environment variables to be copied')
+arg_parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Print out debugging information')
+arg_parser.add_argument('command', nargs = '+', help = 'The command to run')
+args, unknown = arg_parser.parse_known_args()
+args.command += unknown
+
+if args.verbose:
+    logging.basicConfig(level = logging.INFO, format = '[autoproxy] %(message)s')
+
+env = os.environ.copy()
+
+logging.info('Checking condition: {}'.format(args.condition))
+
+if args.condition:
+    with open(os.devnull, 'w') as fp:
+        if args.verbose: fp = sys.stdout
+        exit_code = subprocess.call(args.condition, shell = True, stdout = fp, stderr = fp)
+else:
+    exit_code = 0
+
+logging.info('Exit status: {}'.format(exit_code == 0))
+
+if operator.xor(exit_code == 0, args.invert):
+    logging.info('Setting environment variables:')
+
+    for key, value in os.environ.items():
+        if key.startswith(args.prefix):
+            key = key[len(args.prefix):]
+            logging.info('- {} => {}'.format(key, value))
+            env[key] = value
+
+logging.info('Running command: {}'.format(args.command))
+exit_code = subprocess.call(args.command, env = env)
+sys.exit(exit_code)
