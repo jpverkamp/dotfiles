@@ -20,3 +20,5 @@ alias ec2="autoproxied --condition='dig +short myip.opendns.com @resolver1.opend
 alias aws="autoproxied --condition='dig +short myip.opendns.com @resolver1.opendns.com | egrep \"^(10|50|52)\\.\"' --invert aws"
 
 complete --command aws --no-files --arguments '(begin; set --local --export COMP_SHELL fish; set --local --export COMP_LINE (commandline); aws_completer | sed \'s/ $//\'; end)'
+
+status --is-interactive; and source (rbenv init - | psub)
