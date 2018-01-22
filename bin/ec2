@@ -2,9 +2,10 @@
 
 import argparse
 import boto3
-import json
-import re
-import sys
+import datetime
+import difflib
+import jq
+import pprint
 
 known_fields = [
     'ami_launch_index', 'architecture', 'block_device_mappings', 'client_token',
@@ -19,39 +20,66 @@ known_fields = [
     'subnet_id', 'tags', 'virtualization_type', 'vpc_id'
 ]
 
+# Command line argument processing (this library is nice)
 parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
-parser.add_argument('--ip', default = False, action = 'store_true', help = 'Just print out IP address (alias --first --output private_ip_address)')
-parser.add_argument('--exact', default = False, action = 'store_true', help = 'Only apply an exact match, don\'t include supersets of the given name')
+
 parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
-parser.add_argument('--output', default = 'json', choices = known_fields + ['json'], help = 'The field to return; use json to return all fields')
-parser.add_argument('--first', default = False, action = 'store_true', help = 'Only return the first instance and exit')
-parser.add_argument('server_name', type = str, help = 'Substring of server names')
+parser.add_argument('--matches', default = 0, type = int, help = 'The maximum number of matches to return, default (0) is all')
+parser.add_argument('--exact', default = 'store_true', help = 'Return only exact name matches (rather than any inclusive)')
+parser.add_argument('--pretty', action = 'store_true', help = 'Pretty print results (rather than compact print)')
+
+arg_group = parser.add_mutually_exclusive_group()
+arg_group.add_argument('--filter', default = '.', help = 'A jq style filter to apply to the output')
+arg_group.add_argument('--ip', action = 'store_true', help = 'Alias for --matches 1 --output .private_ip_address')
+arg_group.add_argument('--list', action = 'store_true', help = 'Alias for --output [.instance_id, .private_ip_address, (.tags[] | select(.Key == "Name") | .Value)]')
+
+parser.add_argument('query', type = str, help = 'Query to apply to the Name tag')
+
 args = parser.parse_args()
 
+# Apply aliases
 if args.ip:
-    args.output = 'private_ip_address'
-    args.first = True
+    args.filter = '.private_ip_address'
+    args.matches = 1
 
-if args.output != 'json' and args.output not in known_fields:
-    raise Exception('Unknown field: {}'.format(args.output))
+elif args.list:
+    args.filter = '[.instance_id, .private_ip_address, (.tags[] | select(.Key == "Name") | .Value)]'
 
-if not args.exact:
-    args.server_name = '*{}*'.format(args.server_name)
+# Find the instances, get matches weighted by how well they match
+def instance_name(instance):
+    for tag in instance.tags:
+        if tag['Key'].lower() == 'name':
+            return tag['Value']
+    return tag.instance_id
 
 ec2 = boto3.resource('ec2', region_name = args.region)
 filters = [
-    {'Name': 'tag:Name', 'Values': [args.server_name]},
+    {'Name': 'tag:Name', 'Values': [f'*{args.query}*' if args.exact else args.query]},
     {'Name': 'instance-state-name', 'Values': ['running']},
 ]
 
-for instance in ec2.instances.filter(Filters = filters):
-    if args.output == 'json':
-        print(json.dumps({
-            field: getattr(instance, field)
-            for field in known_fields
-        }, default = str))
-    else:
-        print(getattr(instance, args.output))
+instances = list(sorted(
+    ec2.instances.filter(Filters = filters),
+    key = lambda instance: -difflib.SequenceMatcher(None, args.query, instance_name(instance)).ratio()
+))
 
-    if args.first:
-        break
+if args.matches > 0:
+    instances = instances[:args.matches]
+
+# Print out the requested values using pyjq for filtering
+def replace_datetime(obj):
+    if isinstance(obj, list):
+        return [replace_datetime(el) for el in obj]
+    elif isinstance(obj, dict):
+        return {k: replace_datetime(v) for k, v in obj.items()}
+    elif isinstance(obj, datetime.datetime):
+        return str(obj)
+    else:
+        return obj
+
+jq_filter = jq.jq(args.filter)
+print_f = pprint.pprint if args.pretty else print
+
+for instance in instances:
+    json = {field: replace_datetime(getattr(instance, field)) for field in known_fields}
+    print_f(jq_filter.transform(json))
