@@ -15,4 +15,8 @@ set -gx LSCOLORS gxfxcxdxbxegedabagacad
 
 set -gx AUTOPROXY_HTTP_PROXY 192.168.0.50:7770
 set -gx AUTOPROXY_HTTPS_PROXY 192.168.0.50:7770
+
 alias ec2="autoproxied --condition='dig +short myip.opendns.com @resolver1.opendns.com | egrep \"^(10|50|52)\\.\"' --invert ec2"
+alias aws="autoproxied --condition='dig +short myip.opendns.com @resolver1.opendns.com | egrep \"^(10|50|52)\\.\"' --invert aws"
+
+complete --command aws --no-files --arguments '(begin; set --local --export COMP_SHELL fish; set --local --export COMP_LINE (commandline); aws_completer | sed \'s/ $//\'; end)'
