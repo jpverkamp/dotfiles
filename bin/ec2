@@ -4,8 +4,13 @@ import argparse
 import boto3
 import datetime
 import difflib
-import jq
 import pprint
+
+try:
+    import jq
+except:
+    print('Requires jq (for filtering output): pip3 install jq')
+    sys.exit(0)
 
 known_fields = [
     'ami_launch_index', 'architecture', 'block_device_mappings', 'client_token',
@@ -31,6 +36,7 @@ parser.add_argument('--pretty', action = 'store_true', help = 'Pretty print resu
 arg_group = parser.add_mutually_exclusive_group()
 arg_group.add_argument('--filter', default = '.', help = 'A jq style filter to apply to the output')
 arg_group.add_argument('--ip', action = 'store_true', help = 'Alias for --matches 1 --output .private_ip_address')
+arg_group.add_argument('--ips', action = 'store_true', help = 'Alias for --output .private_ip_address')
 arg_group.add_argument('--list', action = 'store_true', help = 'Alias for --output [.instance_id, .private_ip_address, (.tags[] | select(.Key == "Name") | .Value)]')
 
 parser.add_argument('query', type = str, help = 'Query to apply to the Name tag')
@@ -38,9 +44,10 @@ parser.add_argument('query', type = str, help = 'Query to apply to the Name tag'
 args = parser.parse_args()
 
 # Apply aliases
-if args.ip:
+if args.ip or args.ips:
     args.filter = '.private_ip_address'
-    args.matches = 1
+    if args.ip:
+        args.matches = 1
 
 elif args.list:
     args.filter = '[.instance_id, .private_ip_address, (.tags[] | select(.Key == "Name") | .Value)]'
