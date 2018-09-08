@@ -3,9 +3,6 @@ set __fish_git_prompt_color_branch blue
 set -gx fish_user_paths $fish_user_paths ~/.bin
 set -gx EDITOR vim
 
-set -gx GOPATH ~/Projects/go
-#set -gx fish_user_paths $fish_user_paths $GOPATH/bin
-
 function whitespace_after_prompt --on-event fish_preexec
     printf "\n"
 end
@@ -21,4 +18,3 @@ alias aws="autoproxied --condition='dig +short myip.opendns.com @resolver1.opend
 
 complete --command aws --no-files --arguments '(begin; set --local --export COMP_SHELL fish; set --local --export COMP_LINE (commandline); aws_completer | sed \'s/ $//\'; end)'
 
-status --is-interactive; and source (rbenv init - | psub)
