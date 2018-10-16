@@ -1,6 +1,6 @@
 set __fish_git_prompt_color_branch blue
 
-set -gx fish_user_paths $fish_user_paths ~/.bin
+set -gx fish_user_paths $fish_user_paths ~/.bin ~/.work-bin
 set -gx EDITOR vim
 
 function whitespace_after_prompt --on-event fish_preexec
