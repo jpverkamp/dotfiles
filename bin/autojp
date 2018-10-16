@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import pexpect
+import re
+import sys
+import time
+
+prompt = r'(><>.*?|\w+@i-\w+:.*?)(\$|#)'
+
+# Arguments are expected to be [autojp, keys ..., script, values ...]
+try:
+    arg_count = (len(sys.argv) - 2) // 2
+    keys = sys.argv[1:1+arg_count]
+    values = sys.argv[2+arg_count:]
+    parameters = {k:v for k,v in zip(keys, values)}
+
+    script = sys.argv[1+arg_count]
+    with open(script, 'r') as fin:
+        commands = fin.read()
+
+except Exception as ex:
+    print('Usage: autojp [variable1 variable2 ...] script [value1 value2 ...]\n{}'.format(ex))
+    exit()
+
+print('''\
+=== Running autojp ===
+
+script: {script}
+params: {parameters}
+
+{commands}
+'''.format(
+    script = script,
+    parameters = parameters,
+    commands = commands
+))
+sys.exit(0)
+
+class BytesLogger(object):
+    def flush(self):
+        sys.stdout.flush()
+    def write(self, bytes):
+        sys.stdout.write(bytes.decode())
+
+shell = pexpect.spawn('fish', timeout = None)
+shell.logfile = BytesLogger()
+shell.expect(prompt)
+
+for command in commands.strip().split('\n'):
+    command = command.strip().format(**parameters)
+    if not command or command.startswith('#'):
+        continue
+
+    shell.sendline(command)
+    time.sleep(0.25)
+    shell.expect(prompt, timeout = None)
