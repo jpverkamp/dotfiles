@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+import pexpect
+import re
+import sys
+import time
+
+prompt = r'(><>.*?|\w+@i-\w+:.*?)(\$|#)'
+
+def better_format(format_str, *args, **kwargs):
+    '''
+    Safely recursively map a string to values like str.format(...)
+
+    For the most part, this works just like str.format(...). Exceptions:
+    - If a mapping doesn't exist, just leave the string alone
+    - Recursively handle mappings, iterating until the string stops changing
+    '''
+
+    # This re-implements a lot of the functionality of format, so... yeah
+
+    def replace(match, index = [0]):
+        # Get the entire key as a format string
+        key = match.group(0).strip()
+        result = key
+
+        # If we have an empty string, use the current index
+        if key == '{}':
+            key = '{' + str(index[0]) + '}'
+            index[0] += 1
+
+        try:
+            result = key.format(*args, **kwargs)
+        except:
+            pass
+
+        return result
+
+    result = re.sub(r'\{[^\{\}]*?\}', replace, format_str)
+    if result == format_str:
+        return result
+    else:
+        return better_format(result, *args, **kwargs)
+
+# Arguments are expected to be [autojp, keys ..., script, values ...]
+try:
+    arg_count = (len(sys.argv) - 2) // 2
+    keys = sys.argv[1:1+arg_count]
+    values = sys.argv[2+arg_count:]
+    parameters = {k:v for k,v in zip(keys, values)}
+
+    script = sys.argv[1+arg_count]
+    with open(script, 'r') as fin:
+        commands = fin.read()
+
+except Exception as ex:
+    print('Usage: autojp [variable1 variable2 ...] script [value1 value2 ...]\n{}'.format(ex))
+    exit()
+
+print('''\
+=== Running autojp ===
+
+script: {script}
+params: {parameters}
+
+{commands}
+'''.format(
+    script = script,
+    parameters = parameters,
+    commands = commands
+))
+
+class BytesLogger(object):
+    def flush(self):
+        sys.stdout.flush()
+    def write(self, bytes):
+        sys.stdout.write(bytes.decode())
+
+shell = pexpect.spawn('fish', timeout = None)
+shell.logfile = BytesLogger()
+shell.expect(prompt)
+
+for command in commands.strip().split('\n'):
+    command = better_format(command.strip(), **parameters)
+    if not command or command.startswith('#'):
+        continue
+
+    shell.sendline(command)
+    time.sleep(0.25)
+    shell.expect(prompt, timeout = None)

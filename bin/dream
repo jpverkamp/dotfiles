@@ -1,0 +1,40 @@
+#!/usr/bin/env fish
+
+for filename in $argv
+    notify "I'm dreaming of $filename..."
+    set -lx tmpdir (mktemp -d /tmp/dream.XXXX)
+    cp $filename $tmpdir
+
+    pushd $tmpdir
+        echo "Working in $tmpdir"
+        if test (string match -r ".gif" $filename)
+
+            mkdir src-frames dst-frames
+            convert $filename -coalesce src-frames/%04d.jpg
+
+            set -lx framecount (ls src-frames | wc -l | tr -d ' ')
+            for f in (ls src-frames/)
+                    cat src-frames/$f | docker run -i saturnism/deepdream-cli -l inception_4b/output > dst-frames/$f ^ /dev/null
+                    echo "$filename: Rendered $f (of $framecount)"
+            end
+
+            convert dst-frames/* -set delay 0 -strip -coalesce -layers Optimize dream-$filename
+
+        else if test (string match -r ".jpg" $filename)
+
+            cat $filename | docker run -i saturnism/deepdream-cli -l inception_4b/output > dream-$filename ^ /dev/null
+
+        else
+
+            convert $filename $filename.jpg
+            cat $filename.jpg | docker run -i saturnism/deepdream-cli -l inception_4b/output > dream-$filename.jpg ^ /dev/null
+            convert dream-$filename.jpg dream-$filename
+
+        end
+    popd
+
+    mv $tmpdir/dream-$filename .
+    rm -rf $tmpdir
+
+    notify "$filename has awoken"
+end

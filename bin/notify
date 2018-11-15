@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "$@"
+osascript -e "display notification \"$@\" with title \"CLI Notification\"" || true
