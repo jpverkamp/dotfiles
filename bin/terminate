@@ -1,0 +1,17 @@
+#!/usr/bin/env fish
+
+for ip in $argv
+    set -lx instance_data (aws ec2 describe-instances --filters Name=private-ip-address,Values=$ip)
+    set -lx instance_id (echo $instance_data | jq .Reservations[].Instances[].InstanceId | tr -d '"')
+    if test "$instance_id" = ""
+        echo "No instance found"
+    else
+        set -lx prompt "Terminate: $instance_id (name = "(echo $instance_data | jq -c '.Reservations[0].Instances[0].Tags[] | select(.Key == "Name") | .Value' | tr -d '"')") ? [y/N] "
+        read -lp 'echo "$prompt"' confirm
+        switch $confirm
+            case Y y
+                echo "Terminating $instance_id"
+                aws ec2 terminate-instances --instance-ids $instance_id
+        end
+    end
+end
