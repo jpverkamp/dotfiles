@@ -31,7 +31,7 @@ function fish_prompt
     end
 
     set_color green
-    printf " %s" (pwd)
+    printf " %s" (string replace $HOME '~' (pwd))
 
     # Actual prompt
     set_color white
