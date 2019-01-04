@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import boto3
+import click
+import re
+import shutil
+import sys
+
+@click.command(help = 'List S3 versions, optionally download all versions as well')
+@click.option('--bucket', required = True, help = 'The s3 bucket to scan')
+@click.option('--prefix', default = '', help = 'Prefix of files to scan')
+@click.option('--download', default = False, is_flag = True, help = 'Download all versions (prefix filenames with ISO datetime of edit and version), paths not preserved')
+def s3versions(bucket, prefix, download):
+    '''List all versions of files in s3.'''
+
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket)
+    versions = bucket.object_versions.filter(Prefix = prefix)
+
+    for version in versions:
+        object = version.get()
+
+        path = version.object_key
+        last_modified = object.get('LastModified')
+        version_id = object.get('VersionId')
+        print(path, last_modified, version_id, sep = '\t')
+
+        if download:
+            filename = path.rsplit('/')[-1]
+            with open(f'{last_modified}-{version_id}-{filename}', 'wb') as fout:
+                shutil.copyfileobj(object.get('Body'), fout)
+
+if __name__ == '__main__':
+    s3versions()
