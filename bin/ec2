@@ -28,6 +28,7 @@ known_fields = [
 # Command line argument processing (this library is nice)
 parser = argparse.ArgumentParser(description = 'Find out information about EC2 instances')
 
+parser.add_argument('--profile', default = None, help = 'The AWS profile to use to connect (if not specified, will use default)')
 parser.add_argument('--region', default = 'us-west-2', help = 'The AWS region to search')
 parser.add_argument('--matches', default = 0, type = int, help = 'The maximum number of matches to return, default (0) is all')
 parser.add_argument('--exact', default = 'store_true', help = 'Return only exact name matches (rather than any inclusive)')
@@ -59,7 +60,12 @@ def instance_name(instance):
             return tag['Value']
     return tag.instance_id
 
-ec2 = boto3.resource('ec2', region_name = args.region)
+if args.profile:
+    session = boto3.session.Session(profile_name = args.profile)
+    ec2 = session.resource('ec2', region_name = args.region)
+else:
+    ec2 = boto3.resource('ec2', region_name = args.region)
+
 filters = [
     {'Name': 'tag:Name', 'Values': [f'*{args.query}*' if args.exact else args.query]},
     {'Name': 'instance-state-name', 'Values': ['running']},
