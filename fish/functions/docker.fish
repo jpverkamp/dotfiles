@@ -11,6 +11,9 @@ function docker
         command docker ps -aq -f status=exited | xargs -n 1 docker rm -v
         command docker images -aq -f "dangling=true" | xargs -n 1 docker rmi
 
+    else if test $argv[1] = 'bash'
+        command docker exec -it (docker ps -q | head -n 1) bash
+
     else
         command docker $argv
 
