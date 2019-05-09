@@ -1,0 +1,16 @@
+#!/bin/bash
+
+paths="~/Projects ~/Projects/work ~"
+for path in $paths
+do
+    eval fullpath="$path/$@"
+    if [[ -d $fullpath ]]
+    then
+        cd $fullpath
+        code .
+        tmux new -A -s $(basename $(pwd) | tr -cd '[a-zA-Z0-9]_-')
+        exit 0
+    fi
+done
+
+echo "No directories found named $@ in: $paths"
