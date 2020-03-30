@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Based on:
+# https://stackoverflow.com/questions/37386246/split-large-csv-file-and-keep-header-in-each-part/45384974#45384974
+
+# Pass a file in as the first argument on the command line (note, not secure)
+file=$1
+size=${2:-1000}
+
+tempdir=$(mktemp -d)
+
+# Split header and data
+head -1 $file > $tempdir/header
+tail -n +2 $file > $tempdir/data
+
+pushd $tempdir > /dev/null
+    # Break into chunks
+    split -l $size data chunk
+    rm data
+
+    # Put them back together 
+    for part in `ls -1 $tempdir/chunk*`
+    do
+        cat $tempdir/header $part > $part-$file
+        rm $part
+    done
+popd > /dev/null
+
+# Pull them here
+mv $tempdir/chunk*$file .
+
+rm -rf $tempdir
