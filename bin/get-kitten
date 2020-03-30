@@ -1,0 +1,22 @@
+#!/bin/bash
+
+width=${1:-640}
+height=${2:-$(dc -e "$width 4 / 3 * p")}
+
+echo "Downloading a $width x $height kitten"
+
+i=1
+
+while true
+do
+    filename="kitten-$i.jpg"
+    if [ -f $filename ]; then
+        echo "$filename already exists"
+        ((i+=1))
+        continue
+    else 
+        echo "Downloading to $filename"
+        curl -s https://placekitten.com/$width/$height -o $filename
+        break
+    fi
+done
