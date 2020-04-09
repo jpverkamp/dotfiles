@@ -5,13 +5,13 @@ do
     if [[ "$src" == *.aesdir ]]
     then
         echo "Decrypting directory $src"
-        dst=${src::${#src}-4}
+        dst=${src::${#src}-7}
         (openssl enc -d -aes256 -in $src | tar xf -) && rm $src
 
     elif [[ "$src" == *.aes ]]
     then
         echo "Decrypting $src"
-        dst=${src::${#src}-7}
+        dst=${src::${#src}-4}
         openssl enc -d -aes256 -in $src -out $dst && rm $src || (rm $dst; false)
     
     elif [[ -d "$src" ]]
