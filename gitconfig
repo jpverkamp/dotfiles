@@ -23,6 +23,8 @@
   branches = branch -a
   tags = tag
   stashes = stash list
+  pain = !git log --format=format: --name-only | egrep -v '^$' | sort | uniq -c | sort -rg | head -10
+  entr = !git ls-files -cdmo --exclude-standard | entr -d
 
 [color]
   ui = true
