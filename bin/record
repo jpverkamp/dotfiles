@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if ! command -v terminalizer > /dev/null
+then 
+    echo "Install terminalizer (npm install -g terminalizer)"
+    exit
+fi
+
+if ! command -v gifsicle > /dev/null
+then
+    echo "Install gifsicle (brew install gifsicle)"
+    exit
+fi
+
+name=${1:-terminalizer}
+
+terminalizer record $name -c ~/.config/terminalizer.yml
+terminalizer render $name -o $name-raw.gif
+
+gifsicle -i $name-raw.gif --optimize=3 --lossy --dither=ro64 --colors 32 -o $name.gif
