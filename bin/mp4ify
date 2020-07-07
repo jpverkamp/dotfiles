@@ -1,0 +1,4 @@
+#!/bin/bash
+
+name=$(basename ${1%.*})
+ffmpeg -i $1 $name.mp4
