@@ -1,0 +1,20 @@
+#!/usr/bin/env fish
+
+if test (count $argv) -eq 1
+    set name $argv[1]
+    set time 60
+else if test (count $argv) -eq 2
+    set name $argv[1]
+    set time $argv[2]
+else
+    echo "Usage: ec2 cycle {name} {time=60}"
+    exit
+end
+
+echo "Cycling $name, waiting $time second(s) between each cycle"
+
+for ip in (ec2 $name --ips)
+    echo $ip
+    yes | terminate $ip
+    sleep $time
+end

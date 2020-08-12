@@ -1,0 +1,3 @@
+#!/usr/bin/env fish
+
+ec2-script $argv[1] 'df -h | egrep /$'

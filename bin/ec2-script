@@ -1,0 +1,7 @@
+#!/usr/bin/env fish
+
+for ip in (ec2 $argv[1] --ips)
+    echo $ip
+    ssh ubuntu@$ip $argv[2..-1]
+    echo
+end
