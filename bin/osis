@@ -1,0 +1,9 @@
+#!/bin/bash
+
+system=$(uname | tr '[:upper:]' '[:lower:]')
+target=$1
+
+echo $system
+echo "*$target*"
+
+[[ $system = $target ]]
