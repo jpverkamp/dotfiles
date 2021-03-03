@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Lists and, if specified, downloads all S3 files from specific bucket with specific file prefix and dates
 # Based on https://blog.jverkamp.com/2019/01/04/listing-and-downloading-s3-versions/
