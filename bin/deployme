@@ -1,0 +1,10 @@
+#!/bin/bash
+
+project=$(basename $(pwd))
+echo $project
+
+echo "Updating remote repo"
+ssh home bash -c "'cd ~/Projects/$project; pwd; git up'"
+
+echo "Restarting server"
+ssh home bash -c "'cd ~/Projects/server; docker-compose up --build --detach --remove-orphans'"
