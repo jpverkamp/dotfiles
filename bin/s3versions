@@ -1,34 +1,55 @@
 #!/usr/bin/env python3
-
+#
+# Lists and, if specified, downloads all S3 files from specific bucket with specific file prefix and dates
+# Based on https://blog.jverkamp.com/2019/01/04/listing-and-downloading-s3-versions/
+#
 import boto3
 import click
-import re
 import shutil
-import sys
+from dateutil import parser
 
-@click.command(help = 'List S3 versions, optionally download all versions as well')
-@click.option('--bucket', required = True, help = 'The s3 bucket to scan')
-@click.option('--prefix', default = '', help = 'Prefix of files to scan')
-@click.option('--download', default = False, is_flag = True, help = 'Download all versions (prefix filenames with ISO datetime of edit and version), paths not preserved')
-def s3versions(bucket, prefix, download):
-    '''List all versions of files in s3.'''
+
+@click.command(help='List S3 versions, optionally download all versions as well')
+@click.option('--bucket', required=True, help='The s3 bucket to scan')
+@click.option('--prefix', default='', help='Prefix of files to scan')
+@click.option('--download', default=False, is_flag=True,
+              help='Download all versions (prefix filenames with ISO datetime of edit and version), paths not preserved')
+@click.option('--start_date', default='', help='Start of last modified date')
+@click.option('--end_date', default='', help='End of last modified date')
+def s3versions(bucket, prefix, download, start_date, end_date):
+    """List all versions of files in s3."""
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(bucket)
-    versions = bucket.object_versions.filter(Prefix = prefix)
+    versions = bucket.object_versions.filter(Prefix=prefix)
 
+    start = start_date if start_date == '' else parser.parse(start_date).astimezone()
+    end = end_date if end_date == '' else parser.parse(end_date).astimezone()
+    print(start)
+    print(end)
     for version in versions:
-        object = version.get()
+        s3obj = version.get()
 
         path = version.object_key
-        last_modified = object.get('LastModified')
-        version_id = object.get('VersionId')
-        print(path, last_modified, version_id, sep = '\t')
-
+        last_modified = s3obj.get('LastModified').astimezone()
+        version_id = s3obj.get('VersionId')
+        print('.', end='\x1b[1K\r')
+        if start:
+            if last_modified < start:
+                print('<')
+                # print("Skipped due last_modified < start")
+                continue
+        if end:
+            if last_modified > end:
+                print('>')
+                # print("Skipped due last_modified > end")
+                continue
+        print(path, last_modified, sep='\t')
         if download:
             filename = path.rsplit('/')[-1]
             with open(f'{last_modified}-{version_id}-{filename}', 'wb') as fout:
-                shutil.copyfileobj(object.get('Body'), fout)
+                shutil.copyfileobj(s3obj.get('Body'), fout)
+
 
 if __name__ == '__main__':
     s3versions()
