@@ -1,2 +1,0 @@
-'atom-text-editor':
-  'cmd-(': 'editor:toggle-soft-wrap'
