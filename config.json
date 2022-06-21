@@ -16,17 +16,24 @@
     ]
   },
   "os=darwin": {
+    "copy": {
+      "osx-settings/com.googlecode.iterm2.plist": "~/Library/Preferences/com.googlecode.iterm2.plist"
+    },
     "init": [
       "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
-      "brew install python3 the-silver-searcher tmux zsh reattach-to-user-namespace",
+      "brew install python3 ag tmux zsh reattach-to-user-namespace bat lsd dust duf procs",
       "chsh -s /bin/zsh",
       "defaults write -g ApplePressAndHoldEnabled -bool false",
-      "pip3 install diceware"
+      "pip3 install diceware",
+      "brew tap homebrew/cask-fonts",
+      "brew install font-hack-nerd-font"
     ]
   },
   "os=linux": {
     "init": [
-      "sudo apt-get install git python3 python3-pip silversearcher-ag zsh",
+      "sudo apt-get install git python3 python3-pip silversearcher-ag bat tldr fish",
+      "sudo snap install lsd dust duf-utility procs",
+      "sudo ln -s $(which batcat) /usr/bin/bat",
       "chsh -s /bin/zsh"
     ]
   }
