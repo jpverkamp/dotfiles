@@ -2,10 +2,7 @@
   "global": {
     "link": {
       "ssh": "~/.ssh",
-      "atom": "~/.atom",
-      "fish": "~/.config/fish",
       "gitconfig": "~/.gitconfig",
-      "lein": "~/.lein",
       "bin": "~/.bin",
       "vimrc": "~/.vimrc",
       "emacs.d": "~/.emacs.d",
@@ -24,11 +21,10 @@
     },
     "init": [
       "ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\"",
-      "brew install python3 ag tmux fish reattach-to-user-namespace bat lsd dust duf procs",
-      "sudo sh -c 'echo /usr/local/bin/fish >> /etc/shells'"
-      "chsh -s /usr/local/bin/fish",
+      "brew install python3 ag tmux zsh reattach-to-user-namespace bat lsd dust duf procs",
+      "chsh -s /bin/zsh",
       "defaults write -g ApplePressAndHoldEnabled -bool false",
-      "pip install diceware",
+      "pip3 install diceware",
       "brew tap homebrew/cask-fonts",
       "brew install font-hack-nerd-font"
     ]
@@ -38,11 +34,7 @@
       "sudo apt-get install git python3 python3-pip silversearcher-ag bat tldr fish",
       "sudo snap install lsd dust duf-utility procs",
       "sudo ln -s $(which batcat) /usr/bin/bat",
-      "sudo sh -c 'echo /usr/bin/fish >> /etc/shells'",
-      "chsh -s /usr/bin/fish"
-    ],
-    "link": {
-      "atom/keymap.cson.linux": "atom/keymap.cson"
-    }
+      "chsh -s /bin/zsh"
+    ]
   }
 }

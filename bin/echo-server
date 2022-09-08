@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import json
+import flask
+import uuid
+import os
+import sys
+
+os.makedirs('requests', exist_ok=True)
+
+app = flask.Flask(__name__)
+methods = ["GET", "POST", "PATCH", "DELETE"]
+
+
+@app.route("/", methods=methods, defaults={"path": ""})
+@app.route("/<path:path>", methods=methods)
+def hello_world(path):
+    id = uuid.uuid1().hex
+
+    data = {
+        "uuid": id,
+        "headers": dict(flask.request.headers),
+        "path": path,
+        "data": flask.request.data.decode(),
+        "form": dict(flask.request.form),
+        "json": flask.request.get_json(),
+    }
+
+    js = json.dumps(data, indent=2, default=str)
+    with open(os.path.join('requests', f'{id}.json'), 'w') as f:
+        f.write(js)
+
+    print(f'=== {id} ===\n{js}\n')
+
+    return flask.jsonify(data)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        port = 5000
+    elif len(sys.argv) == 2:
+        port = int(sys.argv[1])
+    else:
+        sys.stderr.write('Usage: echo-server [port=5000]')
+        exit(1)
+
+    app.run(host='0.0.0.0', port=port)

@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import fileinput
+import sys
+
+total = 0
+
+for i, line in enumerate(fileinput.input(), 1):
+    line = line.strip()
+    if not line: 
+        continue
+
+    if line.isdigit():
+        total += int(line)
+    else:
+        try:
+            total += float(line)
+        except ValueError:
+            sys.stderr.write(f'{i}: {line} is not a number')
+            exit(1)
+
+print(f'{total/i}')

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-sudo route -n add -net 192.168.59.0/24 -interface vboxnet0

@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 import coloredlogs
 import logging
 import hashlib
 import os
 import sys
+=======
+from email.mime import image
+import click
+import coloredlogs
+import hashlib
+import io
+import logging
+import os
+import re
+>>>>>>> a8a29675f5b5bbec0883ee93c76dbce1d7c8cf11
 import zipfile
 
 from PIL import Image
 
+<<<<<<< HEAD
 coloredlogs.install(level=logging.INFO)
 
 if len(sys.argv) != 3:
@@ -69,3 +81,81 @@ content = content.replace('<!—more—>', '<!--more-->')
 
 logging.info('Outputting post')
 print(content)
+=======
+coloredlogs.install(logging.INFO)
+
+image_extensions = ['png', 'jpg', 'jpeg', 'gif']
+
+@click.command()
+@click.option('--input', type=click.Path(), help='.textbundle file to read')
+@click.option('--name', default=None, help='Filename to use for generated filenames, defaults to generated')
+@click.option('--output-root', default='.', help='The root path to export the files to')
+@click.option('--output-markdown', default='-', help='The file to write the markdown to, use - for stdout')
+@click.option('--output-assets', default='assets', help='Directory relative to root to rewrite asset paths to')
+@click.option('--resize', default=600, help='Width to resize images to')
+def detextbundle(input, name, output_root, output_markdown, output_assets, resize):
+    if not name:
+        name = re.sub(r'[^a-z0-9]+', '-', input.split('/')[-1].rsplit('.', 1)[0].lower()).strip('-')
+
+    logging.info(f'DeTextbundling {input} as {name}')
+    
+    markdown = None
+    rewrite_assets = {}
+
+    logging.info('Opening archive')
+    with zipfile.ZipFile(input, mode='r') as zip:
+        for info in zip.filelist:
+            logging.info(f'Reading {info.filename}')
+
+            if info.filename.endswith('/text.markdown'):
+                markdown = zip.read(info).decode()
+
+            elif '/assets/' in info.filename:
+                content = zip.read(info)
+                extension = info.filename.rsplit('.')[-1].lower()
+
+                # Resize images
+                if extension in image_extensions:
+                    image = Image.open(io.BytesIO(zip.read(info)))
+                    (old_width, old_height) = image.size
+
+                    if old_width > 600:
+                        new_width = resize
+                        new_height = int(1.0 * new_width / old_width * old_height)
+                        
+                        logging.info(f'Resizing from {old_width}x{old_height} to {new_width}x{new_height}')
+                        image = image.resize((new_width, new_height))
+
+                    with io.BytesIO() as f:
+                        image.save(f, format=extension)
+                        content = f.getvalue()
+
+                hash = hashlib.sha256(content).hexdigest()[:6]
+                filename = f'{name}-{hash}.{extension}'
+                path = os.path.join(output_root, output_assets, filename)
+
+                logging.info(f'Writing asset to {path}')
+                with open(path, 'wb') as f:
+                    f.write(content)
+
+                rewrite_assets[info.filename.split('/', 1)[-1]] = os.path.join('/', output_assets, filename)
+
+            # Ignore any other files, mainly info.json
+            else:
+                logging.info(f'Skipping {info.filename}')
+
+    for src, dst in rewrite_assets.items():
+        logging.info(f'Rewriting assets from {src} to {dst}')
+
+        markdown = markdown.replace(src, dst)
+        markdown = markdown.replace(src.replace(' ', '%20'), dst)
+
+    if output_markdown == '-':
+        print(markdown)
+    else:
+        with open(os.path.join(output_root, output_markdown), 'w') as f:
+            f.write(markdown)
+
+if __name__ == '__main__':
+    detextbundle()
+>>>>>>> a8a29675f5b5bbec0883ee93c76dbce1d7c8cf11
