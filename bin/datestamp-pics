@@ -9,6 +9,7 @@ import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--name', help = 'the name to insert into files')
+parser.add_argument('-f', '--force', action = 'store_true', help = 'Force renaming of files that already include name')
 parser.add_argument('--dry-run', action = 'store_true', help = 'don\'t actually rename files')
 parser.add_argument('--format', default = '{year}-{month}-{day} {name} {filename}.{extension}')
 args = parser.parse_args()
@@ -22,7 +23,13 @@ if '{name}' in args.format and not args.name:
 
 # Loop through all files in the current directory, skipping dot files
 for path in os.listdir('.'):
+	if os.path.isdir(path):
+                continue
+
 	if path.startswith('.'):
+		continue
+
+	if args.name in path and not args.force:
 		continue
 
 	filename, extension = path.rsplit('.', 1)
