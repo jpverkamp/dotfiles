@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+import coloredlogs
+import logging
+import hashlib
+import os
+import sys
+import zipfile
+
+from PIL import Image
+
+coloredlogs.install(level=logging.INFO)
+
+if len(sys.argv) != 3:
+    print('detextbundle [path, ex Hellblazer 3.textbundle] [base filename, example: hellblazer-3')
+    exit(1)
+
+BLOG_ROOT = os.path.expanduser(os.path.join('~', 'Projects', 'blog'))
+IMAGE_DIR = os.path.join(BLOG_ROOT, 'static', 'embeds', 'books', 'attachments')
+
+zippath = sys.argv[1]
+base = sys.argv[2]
+
+filemap = {}
+
+with zipfile.ZipFile(zippath, 'r') as zip:
+    for file in zip.filelist:
+        if file.is_dir(): 
+            continue 
+
+        if '/assets/' not in file.filename:
+            continue
+
+        ext = file.filename.rsplit('.', 1)[-1]
+        
+        with zip.open(file, 'r') as fin:
+            hash = hashlib.sha256(fin.read()).hexdigest()[:6]
+
+        dst = f'{base}-{hash}.{ext}'
+
+        logging.info(f'Mapping {file.filename} to {dst}')
+        filemap[file.filename.split('/', 1)[-1]] = dst
+
+        imgfile = zip.open(file, 'r')
+        img = Image.open(imgfile)
+        img = img.resize((600, int(600 * img.height / img.width)))
+
+        target = os.path.join(IMAGE_DIR, dst)
+        logging.info(f'Writing to {target}')
+        img.save(target)
+
+with zipfile.ZipFile(zippath, 'r') as zip:
+    for file in zip.filelist:
+        if file.is_dir(): 
+            continue 
+        
+        if '/text.markdown' not in file.filename:
+            continue
+
+
+        with zip.open(file, 'r') as fin:
+            content = fin.read().decode()
+
+for src, dst in filemap.items():
+    content = content.replace(f'({src})', f'(/embeds/books/attachments/{dst})')
+    content = content.replace(f'({src.replace(" ", "%20")})', f'(/embeds/books/attachments/{dst})')
+
+content = content.replace('<!—more—>', '<!--more-->')
+
+logging.info('Outputting post')
+print(content)
