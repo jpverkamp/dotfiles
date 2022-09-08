@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mkdir -p ~/Downloads/torrents
+cd ~/Downloads/torrents
+aria2c "$@" --file-allocation=none --seed-time=0 --bt-force-encryption=true
