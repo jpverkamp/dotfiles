@@ -1,6 +1,6 @@
 [user]
   name = JP Verkamp
-  email = me@jverkamp.com
+	email = github@jverkamp.com
 
 [alias]
   addnw = !sh -c 'git diff -U0 -w --no-color "$@" | git apply --cached --ignore-whitespace --unidiff-zero -'
@@ -14,7 +14,6 @@
   lg = log -p
   pushall = '!for remote in git remote; do git push $remote; done;'
   pushme = push origin HEAD
-  rebaseme = !TAG=$(git rev-parse --abbrev-ref HEAD) && git co master && git up && git co $TAG && git rebase master
   stashup = !git stash && git up && git stash apply
   undo = reset HEAD~1 --mixed
   up = !git pull --rebase --prune $@ && git submodule update --init --recursive && git clean-branches
@@ -35,3 +34,12 @@
 
 [push]
   default = simple
+[pull]
+	rebase = false
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
