@@ -29,14 +29,8 @@ alias rsmv="rscp --remove-source-files"
 # Shortcut to rebuild using standard make setup
 alias remake="make clean && make"
 
-# Shortcut for the blog
-alias blog="racket ~/Projects/blog-generator/blog.rkt"
-
 # Simple HTTP server
 alias http="python -m SimpleHTTPServer"
-
-# Grep (allthethings)
-alias grepall="find . -type f -print0 | xargs -0 grep"
 
 # Docker aliases
 docker-kill-all () { docker ps -q | xargs docker kill }
@@ -47,30 +41,6 @@ docker-nuke () {
   docker rm -v $(docker ps -a -q -f status=exited);
   docker rmi $(docker images -f "dangling=true" -q);
 }
-
-docker-machine-reset () {
-  docker-machine rm dev || true
-  docker-machine create --driver virtualbox --virtualbox-disk-size "100000" --engine-insecure-registry registry.edmodo.io dev
-  docker-machine start dev
-  eval $(docker-machine env dev)
-}
-
-# Make sure that docker is running, start it if it's not
-assert-docker() {
-    command docker ps 2> /dev/null > /dev/null
-    if [ $? -ne 0 ]; then
-        echo "Starting docker..."
-        docker-machine start dev
-        eval $(docker-machine env dev)
-        echo
-    fi
-}
-
-docker () { assert-docker && command docker $@ }
-docker-compose () { assert-docker && command docker-compose $@ }
-
-# selecta based aliases
-# source: https://gist.github.com/neilberget/1588f136847ed40afcd4
 
 # Kill a process
 alias zap="ps aux | tail -n+2 | selecta | tr -s ' ' | cut -d ' ' -f 2 | xargs kill"
@@ -114,5 +84,9 @@ then
 
     pbuni() {
         uni $@ | selecta | cut -f 1 | tr -d '\n' | pbcopy
+    }
+
+    temp() {
+        cd $(mktemp -d /tmp/XXXXXXXX)
     }
 fi
