@@ -20,7 +20,7 @@ function fish_prompt
     printf (hostname -s)
 
     # Git status
-    set git_branch (git rev-parse --abbrev-ref HEAD ^ /dev/null)
+    set git_branch (git rev-parse --abbrev-ref HEAD 2>/dev/null)
     if test "$git_branch" != ""
         set_color white
         printf " {"
