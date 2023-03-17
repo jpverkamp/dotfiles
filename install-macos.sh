@@ -43,3 +43,6 @@ ln -snf $DIR/zshrc ~/.zshrc
 # Configure git
 git config --global user.name "JP Verkamp"
 git config --global user.email me@jverkamp.com
+
+# Generate a new SSH key for this machine if one hasn't already been generated
+[ -f ~/.ssh/id_ed25519 ] || ssh-keygen -f ~/.ssh/id_ed25519 -t ed25519 -C "me@jverkamp.com" -P ""
