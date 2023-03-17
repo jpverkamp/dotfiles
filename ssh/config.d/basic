@@ -6,16 +6,8 @@ Host *
     ControlMaster auto
     ControlPath /tmp/ssh-%r@%h:%p
 
-# ============
-# ||  HOME  ||
-# ============
-
 Host *.local
     User jp
-
-# ============
-# || GITHUB ||
-# ============
 
 Host github.com
     HostName github.com
