@@ -30,14 +30,15 @@ nix-env -u
 defaults write -g ApplePressAndHoldEnabled -bool false
 
 # Set up symlinks
-ln -sf $DIR/bin ~/.bin
-ln -sf $DIR/diceware.ini ~/.diceware.ini
-ln -sf $DIR/hammerspoon ~/.hammerspoon
-ln -sf $DIR/gitconfig ~/.gitconfig
-ln -sf $DIR/tmux.conf ~/.tmux.conf
-ln -sf $DIR/vimrc ~/.vimrc
-ln -sf $DIR/zsh.d ~/.zsh.d
-ln -sf $DIR/zshrc ~/.zshrc
+ln -snf $DIR/bin ~/.bin
+ln -snf $DIR/diceware.ini ~/.diceware.ini
+ln -snf $DIR/hammerspoon ~/.hammerspoon
+ln -snf $DIR/gitconfig ~/.gitconfig
+ln -snf $DIR/ssh/config ~/.ssh/config
+ln -snf $DIR/tmux.conf ~/.tmux.conf
+ln -snf $DIR/vimrc ~/.vimrc
+ln -snf $DIR/zsh.d ~/.zsh.d
+ln -snf $DIR/zshrc ~/.zshrc
 
 # Configure git
 git config --global user.name "JP Verkamp"
