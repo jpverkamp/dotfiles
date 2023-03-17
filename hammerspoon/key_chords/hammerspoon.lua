@@ -1,0 +1,15 @@
+register_key_chord("Hammerspoon (⌘⌃h)", function() 
+    hammerspoonMode = hs.hotkey.modal.new('⌘⌃', 'h')
+
+    hammerspoonMode:bind('', 'r', function()
+        hs.alert.show('Reloading Hammerspoon')
+        hs.reload()
+        hammerspoonMode:exit()
+    end)
+
+    hammerspoonMode:bind('', 'l', function()
+        hs.alert.show('Running init_layout')
+        init_layout()
+        hammerspoonMode:exit()
+    end)
+end)

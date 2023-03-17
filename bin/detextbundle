@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-<<<<<<< HEAD
-import coloredlogs
-import logging
-import hashlib
-import os
-import sys
-=======
 from email.mime import image
 import click
 import coloredlogs
@@ -15,76 +8,15 @@ import io
 import logging
 import os
 import re
->>>>>>> a8a29675f5b5bbec0883ee93c76dbce1d7c8cf11
+import shutil
 import zipfile
 
 from PIL import Image
 
-<<<<<<< HEAD
-coloredlogs.install(level=logging.INFO)
-
-if len(sys.argv) != 3:
-    print('detextbundle [path, ex Hellblazer 3.textbundle] [base filename, example: hellblazer-3')
-    exit(1)
-
-BLOG_ROOT = os.path.expanduser(os.path.join('~', 'Projects', 'blog'))
-IMAGE_DIR = os.path.join(BLOG_ROOT, 'static', 'embeds', 'books', 'attachments')
-
-zippath = sys.argv[1]
-base = sys.argv[2]
-
-filemap = {}
-
-with zipfile.ZipFile(zippath, 'r') as zip:
-    for file in zip.filelist:
-        if file.is_dir(): 
-            continue 
-
-        if '/assets/' not in file.filename:
-            continue
-
-        ext = file.filename.rsplit('.', 1)[-1]
-        
-        with zip.open(file, 'r') as fin:
-            hash = hashlib.sha256(fin.read()).hexdigest()[:6]
-
-        dst = f'{base}-{hash}.{ext}'
-
-        logging.info(f'Mapping {file.filename} to {dst}')
-        filemap[file.filename.split('/', 1)[-1]] = dst
-
-        imgfile = zip.open(file, 'r')
-        img = Image.open(imgfile)
-        img = img.resize((600, int(600 * img.height / img.width)))
-
-        target = os.path.join(IMAGE_DIR, dst)
-        logging.info(f'Writing to {target}')
-        img.save(target)
-
-with zipfile.ZipFile(zippath, 'r') as zip:
-    for file in zip.filelist:
-        if file.is_dir(): 
-            continue 
-        
-        if '/text.markdown' not in file.filename:
-            continue
-
-
-        with zip.open(file, 'r') as fin:
-            content = fin.read().decode()
-
-for src, dst in filemap.items():
-    content = content.replace(f'({src})', f'(/embeds/books/attachments/{dst})')
-    content = content.replace(f'({src.replace(" ", "%20")})', f'(/embeds/books/attachments/{dst})')
-
-content = content.replace('<!—more—>', '<!--more-->')
-
-logging.info('Outputting post')
-print(content)
-=======
 coloredlogs.install(logging.INFO)
 
 image_extensions = ['png', 'jpg', 'jpeg', 'gif']
+
 
 @click.command()
 @click.option('--input', type=click.Path(), help='.textbundle file to read')
@@ -98,21 +30,31 @@ def detextbundle(input, name, output_root, output_markdown, output_assets, resiz
         name = re.sub(r'[^a-z0-9]+', '-', input.split('/')[-1].rsplit('.', 1)[0].lower()).strip('-')
 
     logging.info(f'DeTextbundling {input} as {name}')
-    
+
     markdown = None
     rewrite_assets = {}
+
+    if os.path.isdir(input):
+        if not not os.path.exists(input + '.zip'):
+            logging.info(f'[hack] Input was directory, making zip')
+            shutil.make_archive(input, 'zip', input)
+        input = input + '.zip'
 
     logging.info('Opening archive')
     with zipfile.ZipFile(input, mode='r') as zip:
         for info in zip.filelist:
             logging.info(f'Reading {info.filename}')
 
-            if info.filename.endswith('/text.markdown'):
+            if info.is_dir():
+                continue
+
+            elif info.filename.endswith('text.markdown'):
                 markdown = zip.read(info).decode()
 
-            elif '/assets/' in info.filename:
+            elif 'assets/' in info.filename:
+                filename = info.filename.lstrip('/')
                 content = zip.read(info)
-                extension = info.filename.rsplit('.')[-1].lower()
+                extension = filename.rsplit('.')[-1].lower()
 
                 # Resize images
                 if extension in image_extensions:
@@ -122,7 +64,7 @@ def detextbundle(input, name, output_root, output_markdown, output_assets, resiz
                     if old_width > 600:
                         new_width = resize
                         new_height = int(1.0 * new_width / old_width * old_height)
-                        
+
                         logging.info(f'Resizing from {old_width}x{old_height} to {new_width}x{new_height}')
                         image = image.resize((new_width, new_height))
 
@@ -147,8 +89,18 @@ def detextbundle(input, name, output_root, output_markdown, output_assets, resiz
     for src, dst in rewrite_assets.items():
         logging.info(f'Rewriting assets from {src} to {dst}')
 
-        markdown = markdown.replace(src, dst)
-        markdown = markdown.replace(src.replace(' ', '%20'), dst)
+        for prefix in ('/assets/', 'assets/', ''):
+            markdown = markdown.replace(prefix + src, dst)
+            markdown = markdown.replace(prefix + src.replace(' ', '%20'), dst)
+
+    # Remove initial heading (if present)
+    lines = markdown.split('\n')
+    if lines[0].startswith('# '):
+        lines = lines[1:]
+    markdown = '\n'.join(lines)
+
+    # Add more tag (and hr to separate things)
+    markdown = markdown.replace('——', '<!--more-->\n\n---\n\n')
 
     if output_markdown == '-':
         print(markdown)
@@ -156,6 +108,6 @@ def detextbundle(input, name, output_root, output_markdown, output_assets, resiz
         with open(os.path.join(output_root, output_markdown), 'w') as f:
             f.write(markdown)
 
+
 if __name__ == '__main__':
     detextbundle()
->>>>>>> a8a29675f5b5bbec0883ee93c76dbce1d7c8cf11

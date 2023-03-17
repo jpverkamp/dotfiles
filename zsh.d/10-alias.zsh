@@ -68,6 +68,7 @@ if [[ `uname` == 'Darwin' ]]
 then
     alias atom="/Applications/Atom.app/Contents/MacOS/Atom"
     alias vlc="/Applications/VLC.app/Contents/MacOS/VLC"
+    alias firefox="/Applications/Firefox.app/Contents/MacOS/firefox"
 
     # https://apple.stackexchange.com/questions/15318/using-terminal-to-copy-a-file-to-clipboard
     pbcopy-file() {

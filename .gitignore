@@ -5,21 +5,3 @@ __pycache__
 
 .DS_Store
 compiled
-
-ssh/*
-!ssh/*.aes
-
-atom/.apm/
-atom/.node-gyp/
-atom/blob-store/
-atom/compile-cache/
-atom/storage/
-atom/packages/
-atom/*.cson
-
-# OSX specific links
-bin/vlc
-
-fish/fish_history
-fish/fishd.*
-fish/fish_variables

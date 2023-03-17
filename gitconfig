@@ -1,6 +1,6 @@
 [user]
-  name = JP Verkamp
-	email = github@jverkamp.com
+	name = JP Verkamp
+	email = me@jverkamp.com
 
 [alias]
   addnw = !sh -c 'git diff -U0 -w --no-color "$@" | git apply --cached --ignore-whitespace --unidiff-zero -'
