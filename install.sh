@@ -21,6 +21,7 @@ nix-env -iA nixpkgs.htop
 nix-env -iA nixpkgs.hugo
 nix-env -iA nixpkgs.jq
 nix-env -iA nixpkgs.python3
+nix-env -iA nixpkgs.python3.pkgs.pip
 nix-env -iA nixpkgs.reattach-to-user-namespace
 nix-env -iA nixpkgs.rustc
 nix-env -iA nixpkgs.silver-searcher
