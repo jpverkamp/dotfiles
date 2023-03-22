@@ -8,16 +8,6 @@
 	<false/>
 	<key>AnimateDimming</key>
 	<false/>
-	<key>AppleAntiAliasingThreshold</key>
-	<integer>1</integer>
-	<key>ApplePressAndHoldEnabled</key>
-	<false/>
-	<key>AppleScrollAnimationEnabled</key>
-	<integer>0</integer>
-	<key>AppleSmoothFixedFontsSizeThreshold</key>
-	<integer>1</integer>
-	<key>AppleWindowTabbingMode</key>
-	<string>manual</string>
 	<key>AutoHideTmuxClientSession</key>
 	<false/>
 	<key>CheckTestRelease</key>
@@ -80,6 +70,19 @@
 			<key>Text</key>
 			<string></string>
 		</dict>
+		<key>0xf702-0x300000-0x7b</key>
+		<dict>
+			<key>Action</key>
+			<integer>31</integer>
+			<key>Apply Mode</key>
+			<integer>0</integer>
+			<key>Escaping</key>
+			<integer>2</integer>
+			<key>Text</key>
+			<string></string>
+			<key>Version</key>
+			<integer>2</integer>
+		</dict>
 		<key>0xf702-0x320000-0x7b</key>
 		<dict>
 			<key>Action</key>
@@ -88,6 +91,19 @@
 			<string></string>
 			<key>Text</key>
 			<string></string>
+		</dict>
+		<key>0xf703-0x300000-0x7c</key>
+		<dict>
+			<key>Action</key>
+			<integer>30</integer>
+			<key>Apply Mode</key>
+			<integer>0</integer>
+			<key>Escaping</key>
+			<integer>2</integer>
+			<key>Text</key>
+			<string></string>
+			<key>Version</key>
+			<integer>2</integer>
 		</dict>
 		<key>0xf703-0x320000-0x7c</key>
 		<dict>
