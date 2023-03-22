@@ -1,0 +1,21 @@
+#!/bin/bash
+
+DIR=$(mktemp -d /tmp/XXXXXXXX)
+echo "=== Working in $DIR ==="
+
+echo "=== Generating file list ==="
+for f in $*
+do 
+    echo "file $(pwd)/$f"
+done > $DIR/files.txt
+
+cat $DIR/files.txt
+
+echo "=== Combining into single video ==="
+ffmpeg -f concat -safe 0 -i $DIR/files.txt -c copy output.mp4
+
+# echo "=== Re-encoding to h265 ==="
+# ffmpeg -i $DIR/combined.mp4 -vcodec libx265 -crf 28 output.mp4
+
+# echo "=== Cleaning up ==="
+# rm $DIR/*
