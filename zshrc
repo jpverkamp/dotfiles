@@ -16,3 +16,6 @@ else
     echo "Error loading $Z_DOT_DIR: directory does not exist"
 fi
 
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+

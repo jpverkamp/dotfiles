@@ -28,7 +28,7 @@ function chpwd() {
 # Control the prompt(s)
 function zsh_update_prompt {
 PROMPT="
-┌ ${Z_STATUS} ${Z_MACHINE} ${Z_VCS}${Z_DIRECTORY}
+%{$(iterm2_prompt_mark)%}┌ ${Z_STATUS} ${Z_MACHINE} ${Z_VCS}${Z_DIRECTORY}
 └ "
 }
 precmd_functions+='zsh_update_prompt'
