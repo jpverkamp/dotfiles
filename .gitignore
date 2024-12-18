@@ -3,5 +3,9 @@
 *.bak
 __pycache__
 
+zsh.d/completions
+
 .DS_Store
 compiled
+
+ssh/authorized_keys

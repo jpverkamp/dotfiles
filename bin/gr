@@ -1,1 +1,4 @@
-/Users/jp/Projects/corpora/goodreads/cli.py
+#!/bin/bash
+
+source ~/Projects/corpora/goodreads/.venv/bin/activate
+~/Projects/corpora/goodreads/cli.py "$@"

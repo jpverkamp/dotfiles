@@ -13,51 +13,79 @@ import zipfile
 
 from PIL import Image
 
+import pillow_heif
+
+pillow_heif.register_heif_opener()
+
 coloredlogs.install(logging.INFO)
 
-image_extensions = ['png', 'jpg', 'jpeg', 'gif']
+image_extensions = ["png", "jpg", "jpeg", "gif", "heic"]
 
 
 @click.command()
-@click.option('--input', type=click.Path(), help='.textbundle file to read')
-@click.option('--name', default=None, help='Filename to use for generated filenames, defaults to generated')
-@click.option('--output-root', default='.', help='The root path to export the files to')
-@click.option('--output-markdown', default='-', help='The file to write the markdown to, use - for stdout')
-@click.option('--output-assets', default='assets', help='Directory relative to root to rewrite asset paths to')
-@click.option('--resize', default=600, help='Width to resize images to')
+@click.option("--input", type=click.Path(), help=".textbundle file to read")
+@click.option(
+    "--name",
+    default=None,
+    help="Filename to use for generated filenames, defaults to generated",
+)
+@click.option("--output-root", default=".", help="The root path to export the files to")
+@click.option(
+    "--output-markdown",
+    default="-",
+    help="The file to write the markdown to, use - for stdout",
+)
+@click.option(
+    "--output-assets",
+    default="assets",
+    help="Directory relative to root to rewrite asset paths to",
+)
+@click.option("--resize", default=600, help="Width to resize images to")
 def detextbundle(input, name, output_root, output_markdown, output_assets, resize):
     if not name:
-        name = re.sub(r'[^a-z0-9]+', '-', input.split('/')[-1].rsplit('.', 1)[0].lower()).strip('-')
+        name = re.sub(
+            r"[^a-z0-9]+",
+            "-",
+            input.rstrip("/").split("/")[-1].rsplit(".", 1)[0].lower(),
+        ).strip("-")
 
-    logging.info(f'DeTextbundling {input} as {name}')
+    logging.info(f"DeTextbundling {input} as {name}")
 
     markdown = None
     rewrite_assets = {}
 
     if os.path.isdir(input):
-        if not not os.path.exists(input + '.zip'):
-            logging.info(f'[hack] Input was directory, making zip')
-            shutil.make_archive(input, 'zip', input)
-        input = input + '.zip'
+        if not os.path.exists(input + ".zip"):
+            logging.info(f"[hack] Input was directory, making zip")
+            shutil.make_archive(input, "zip", input)
+        input = input + ".zip"
 
-    logging.info('Opening archive')
-    with zipfile.ZipFile(input, mode='r') as zip:
+    logging.info("Opening archive")
+    with zipfile.ZipFile(input, mode="r") as zip:
         for info in zip.filelist:
-            logging.info(f'Reading {info.filename}')
+            logging.info(f"Reading {info.filename}")
 
             if info.is_dir():
                 continue
 
-            elif info.filename.endswith('text.markdown'):
+            elif info.filename.endswith("text.markdown"):
                 markdown = zip.read(info).decode()
 
-            elif 'assets/' in info.filename:
-                filename = info.filename.lstrip('/')
+            elif info.filename.endswith("text.md"):
+                markdown = zip.read(info).decode()
+
+            elif "assets/" in info.filename:
+                filename = info.filename.lstrip("/")
                 content = zip.read(info)
-                extension = filename.rsplit('.')[-1].lower()
+                extension = filename.rsplit(".")[-1].lower()
 
                 # Resize images
                 if extension in image_extensions:
+                    if extension.lower() in ["heic", "heif"]:
+                        output_extension = "jpeg"
+                    else:
+                        output_extension = extension
+
                     image = Image.open(io.BytesIO(zip.read(info)))
                     (old_width, old_height) = image.size
 
@@ -65,49 +93,53 @@ def detextbundle(input, name, output_root, output_markdown, output_assets, resiz
                         new_width = resize
                         new_height = int(1.0 * new_width / old_width * old_height)
 
-                        logging.info(f'Resizing from {old_width}x{old_height} to {new_width}x{new_height}')
+                        logging.info(
+                            f"Resizing from {old_width}x{old_height} to {new_width}x{new_height}"
+                        )
                         image = image.resize((new_width, new_height))
 
                     with io.BytesIO() as f:
-                        image.save(f, format=extension)
+                        image.save(f, format=output_extension)
                         content = f.getvalue()
 
                 hash = hashlib.sha256(content).hexdigest()[:6]
-                filename = f'{name}-{hash}.{extension}'
+                filename = f"{name}-{hash}.{output_extension}"
                 path = os.path.join(output_root, output_assets, filename)
 
-                logging.info(f'Writing asset to {path}')
-                with open(path, 'wb') as f:
+                logging.info(f"Writing asset to {path}")
+                with open(path, "wb") as f:
                     f.write(content)
 
-                rewrite_assets[info.filename.split('/', 1)[-1]] = os.path.join('/', output_assets, filename)
+                rewrite_assets[info.filename.split("/", 1)[-1]] = os.path.join(
+                    "/", output_assets, filename
+                )
 
             # Ignore any other files, mainly info.json
             else:
-                logging.info(f'Skipping {info.filename}')
+                logging.info(f"Skipping {info.filename}")
 
     for src, dst in rewrite_assets.items():
-        logging.info(f'Rewriting assets from {src} to {dst}')
+        logging.info(f"Rewriting assets from {src} to {dst}")
 
-        for prefix in ('/assets/', 'assets/', ''):
+        for prefix in ("/assets/", "assets/", ""):
             markdown = markdown.replace(prefix + src, dst)
-            markdown = markdown.replace(prefix + src.replace(' ', '%20'), dst)
+            markdown = markdown.replace(prefix + src.replace(" ", "%20"), dst)
 
     # Remove initial heading (if present)
-    lines = markdown.split('\n')
-    if lines[0].startswith('# '):
+    lines = markdown.split("\n")
+    if lines[0].startswith("# "):
         lines = lines[1:]
-    markdown = '\n'.join(lines)
+    markdown = "\n".join(lines)
 
     # Add more tag (and hr to separate things)
-    markdown = markdown.replace('——', '<!--more-->\n\n---\n\n')
+    markdown = markdown.replace("——", "<!--more-->\n\n- - -\n\n")
 
-    if output_markdown == '-':
+    if output_markdown == "-":
         print(markdown)
     else:
-        with open(os.path.join(output_root, output_markdown), 'w') as f:
+        with open(os.path.join(output_root, output_markdown), "w") as f:
             f.write(markdown)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     detextbundle()

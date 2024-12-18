@@ -29,8 +29,12 @@ alias rsmv="rscp --remove-source-files"
 # Shortcut to rebuild using standard make setup
 alias remake="make clean && make"
 
+# Python 
+alias python=python3
+alias pip=pip3
+
 # Simple HTTP server
-alias http="python -m SimpleHTTPServer"
+alias http="python -m http.server"
 
 # Docker aliases
 docker-kill-all () { docker ps -q | xargs docker kill }
@@ -40,6 +44,12 @@ docker-nuke () {
   docker images | grep '<none>' | awk '{print $3;}' | xargs docker rmi -f;
   docker rm -v $(docker ps -a -q -f status=exited);
   docker rmi $(docker images -f "dangling=true" -q);
+}
+
+# Tor proxy
+tor-proxy () {
+  echo "===== SOCKS5: 127.0.0.1:9050 ====="
+  docker run -it -p 8118:8118 -p 9050:9050 dperson/torproxy
 }
 
 # Kill a process
@@ -62,6 +72,10 @@ maketargets() {
   make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'
 }
 alias makes="maketargets | selecta | xargs make"
+
+# Shorter aliases for VS Code Insider
+alias codi=code-insiders
+alias codei=code-insiders
 
 # OSX specific aliases
 if [[ `uname` == 'Darwin' ]]

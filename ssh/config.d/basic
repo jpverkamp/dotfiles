@@ -1,6 +1,6 @@
-Match exec "osis darwin"
-    AddKeysToAgent yes
-    UseKeychain yes
+#Match exec "osis darwin"
+#    AddKeysToAgent yes
+#    UseKeychain yes
 
 Host *
     ControlMaster auto

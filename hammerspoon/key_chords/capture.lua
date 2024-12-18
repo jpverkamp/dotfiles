@@ -1,24 +1,13 @@
-register_key_chord('Capture ⌘⌃c', function() 
+register_key_chord('Screenshots ⌘⌃c', function() 
     captureMode = hs.hotkey.modal.new('⌘⌃', 'c')
 
     captureMode:bind('', 's', function()
-        hs.eventtap.keyStroke('⌘⌃⇧', '1')
+        hs.eventtap.keyStroke('⌘⌃⇧', '4')
         captureMode:exit()
     end)
 
     captureMode:bind('', 'r', function()
-        hs.eventtap.keyStroke('⌘⌃⇧', '2')
-        hs.eventtap.keyStroke('⌘⌃⇧', '4') -- mute
-        captureMode:exit()
-    end)
-
-    captureMode:bind('', 'g', function()
-        hs.eventtap.keyStroke('⌘⌃⇧', '3');
-        captureMode:exit()
-    end)
-
-    captureMode:bind('', 'SPACE', function()
-        hs.eventtap.keyStroke('⌘⌃⇧', '9');
+        hs.eventtap.keyStroke('⌘⇧', '5')
         captureMode:exit()
     end)
 end)

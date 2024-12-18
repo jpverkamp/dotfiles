@@ -1,7 +1,7 @@
 hs.grid.MARGINX = 0
 hs.grid.MARGINY = 0
-hs.grid.GRIDWIDTH = 6
-hs.grid.GRIDHEIGHT = 2
+hs.grid.GRIDWIDTH = 8
+hs.grid.GRIDHEIGHT = 4
 
 require "functions/push"
 require "functions/rehome"
