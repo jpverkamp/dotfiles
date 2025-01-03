@@ -1,3 +1,11 @@
+# Zinit
+ZINIT_HOME="$HOME/.local/share/zinit/zinit.git"
+if [[ ! -d $ZINIT_HOME ]]; then
+	mkdir -p $ZINIT_HOME
+	git clone https://github.com/zdharma-continuum/zinit.git $ZINIT_HOME
+fi
+source "$ZINIT_HOME/zinit.zsh"
+
 Z_DOT_DIR=$HOME/.zsh.d/
 
 # Load split configuration files
@@ -16,10 +24,8 @@ else
     echo "Error loading $Z_DOT_DIR: directory does not exist"
 fi
 
-
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-
 export WASMTIME_HOME="$HOME/.wasmtime"
-
 export PATH="$WASMTIME_HOME/bin:$PATH"
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
