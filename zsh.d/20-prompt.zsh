@@ -7,7 +7,8 @@ zstyle ':vcs_info:git*' actionformats "%{$Z_CLR_BLUE%}%s %b-%a%{$Z_CLR_RESET%}"
 local Z_DATE="%D{%Y-%m-%d %H:%M}"
 local Z_DIRECTORY="%{$Z_CLR_GREEN%}%~%{$Z_CLR_RESET%}"
 local Z_MACHINE="%{$Z_CLR_MAGENTA%}%n%{$Z_CLR_RESET%}@%{$Z_CLR_YELLOW%}%m%{$Z_CLR_RESET%}"
-local Z_STATUS="%(?,,%{$Z_CLR_RED%};_; code=%?%f%b)"
+local Z_STATUS="%(?,,%{$Z_CLR_RED%};_; code=%?
+%f%b)"
 local Z_VCS=""
 
 precmd() {
@@ -28,9 +29,9 @@ function chpwd() {
 
 # Control the prompt(s)
 function zsh_update_prompt {
-PROMPT="${Z_STATUS}
-${Z_DIRECTORY} ${Z_MACHINE} ${Z_VCS}
-%{$(iterm2_prompt_mark)%}%{$Z_CLR_WHITE%}$%{$Z_CLR_RESET%} "
+    PROMPT="${Z_STATUS}
+%{$(iterm2_prompt_mark)%}${Z_DIRECTORY} ${Z_MACHINE} ${Z_VCS}
+%{$Z_CLR_WHITE%}$%{$Z_CLR_RESET%} "
 }
 precmd_functions+='zsh_update_prompt'
 
