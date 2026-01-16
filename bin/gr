@@ -1,4 +1,6 @@
 #!/bin/bash
 
-source ~/Projects/corpora/goodreads/.venv/bin/activate
-~/Projects/corpora/goodreads/cli.py "$@"
+cd ~/Projects/gr && uv run cli.py "$@"
+
+#source ~/Projects/g.venv/bin/activate
+#~/Projects/corpora/goodreads/cli.py "$@"

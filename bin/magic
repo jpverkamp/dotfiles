@@ -1,3 +1,3 @@
 #!/usr/bin/env fish
 
-docker run -it -v (pwd):(pwd) -w (pwd) $argv[2..-1] $argv[1] bash
+podman run -it -v (pwd):(pwd) -w (pwd) $argv[2..-1] $argv[1] bash
