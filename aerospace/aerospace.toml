@@ -1,0 +1,168 @@
+accordion-padding = 30
+after-login-command = []
+after-startup-command = []
+default-root-container-layout = 'tiles' # tiles / accordion
+default-root-container-orientation = 'auto'
+key-mapping.preset = 'qwerty'
+start-at-login = true
+
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# Window default mode
+[[on-window-detected]]
+check-further-callbacks = true
+run = 'layout floating' # floating / tiling
+
+# Move windows to specific workspaces
+
+# Main/1
+    [[on-window-detected]]
+    if.app-id = 'org.mozilla.firefox'
+    if.window-title-regex-substring = '\[Main\]'
+    run = 'move-node-to-workspace 1'
+
+    [[on-window-detected]]
+    if.app-id = 'com.microsoft.VSCode'
+    if.window-title-regex-substring = 'todo'
+    run = 'move-node-to-workspace 1'
+
+# Media
+    [[on-window-detected]]
+    if.window-title-regex-substring = '\[Media\]'
+    run = 'move-node-to-workspace media'
+
+    [[on-window-detected]]
+    if.app-id = 'com.apple.MobileSMS'
+    run = 'move-node-to-workspace chat'
+
+    [[on-window-detected]]
+    if.app-id = 'com.tinyspeck.slackmacgap'
+    run = 'move-node-to-workspace chat'
+
+# Blog
+    [[on-window-detected]]
+    if.app-id = 'org.mozilla.firefox'
+    if.window-title-regex-substring = '\[Blog\]'
+    run = 'move-node-to-workspace blog'
+
+    [[on-window-detected]]
+    if.app-id = 'com.microsoft.VSCode'
+    if.window-title-regex-substring = 'blog'
+    run = 'move-node-to-workspace blog'
+
+# Games
+    [[on-window-detected]]
+    if.app-id = 'com.valvesoftware.steam'
+    run = 'move-node-to-workspace games'
+
+    [[on-window-detected]]
+    if.workspace = 'games'
+    run = 'layout floating'
+
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = 'main'
+4 = 'main'
+5 = 'main'
+6 = 'main'
+7 = 'main'
+8 = 'main'
+9 = 'main'
+blog = 'main'
+games = 'main'
+print = 'main'
+media = ['secondary', 'main']
+chat = ['secondary', 'main']
+
+[mode.main.binding]
+# Disable built in 'hide' shortcuts
+cmd-h = []
+cmd-alt-h = []
+
+# Toggle between last two workspaces
+alt-tab = 'workspace-back-and-forth'
+
+# Equivalent to next/previous space (usage lex order: 1-9 a-z)
+cmd-ctrl-left = 'workspace prev --wrap-around'
+cmd-ctrl-right = 'workspace next --wrap-around'
+
+cmd-ctrl-shift-left = 'move-node-to-workspace prev --wrap-around'
+cmd-ctrl-shift-right = 'move-node-to-workspace next --wrap-around'
+cmd-ctrl-shift-up = 'move-node-to-monitor next --wrap-around'
+cmd-ctrl-shift-down = 'move-node-to-monitor prev --wrap-around'
+
+alt-keypadPlus = 'resize smart +50'
+alt-keypadMinus = 'resize smart -50'
+
+# Jump to specific workspaces
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-b = 'workspace blog'
+alt-g = 'workspace games'
+alt-m = 'workspace media'
+alt-t = 'workspace media' # for youTube :), it's on the left hand
+alt-p = 'workspace print'
+alt-c = 'workspace chat'
+
+# Set up commands chords, see mode.choose.binding for further commands
+alt-q = 'mode choose'
+
+[mode.choose.binding]
+r = ['reload-config', 'mode main']
+j = 'mode join'
+m = 'mode move'
+l = 'mode layout'
+f = 'layout floating'
+t = 'layout tiling'
+esc = 'mode main'
+enter = 'mode main'
+
+[mode.move.binding]
+1 = ['move-node-to-workspace 1', 'workspace 1', 'mode main']
+2 = ['move-node-to-workspace 2', 'workspace 2', 'mode main']
+3 = ['move-node-to-workspace 3', 'workspace 3', 'mode main']
+4 = ['move-node-to-workspace 4', 'workspace 4', 'mode main']
+5 = ['move-node-to-workspace 5', 'workspace 5', 'mode main']
+6 = ['move-node-to-workspace 6', 'workspace 6', 'mode main']
+7 = ['move-node-to-workspace 7', 'workspace 7', 'mode main']
+8 = ['move-node-to-workspace 8', 'workspace 8', 'mode main']
+9 = ['move-node-to-workspace 9', 'workspace 9', 'mode main']
+b = ['move-node-to-workspace blog', 'workspace blog', 'mode main']
+g = ['move-node-to-workspace games', 'workspace games', 'mode main']
+m = ['move-node-to-workspace media', 'workspace media', 'mode main']
+p = ['move-node-to-workspace print', 'workspace print', 'mode main']
+c = ['move-node-to-workspace chat', 'workspace chat', 'mode main']
+esc = 'mode main'
+enter = 'mode main'
+
+[mode.layout.binding]
+b = ['balance-sizes', 'mode main']
+f = ['exec-and-forget aerospace list-windows --workspace focused --format "%{window-id}" | xargs -n1 aerospace layout floating --window-id', 'mode main']
+t = ['exec-and-forget aerospace list-windows --workspace focused --format "%{window-id}" | xargs -n1 aerospace layout tiling --window-id', 'mode main']
+a = ['exec-and-forget aerospace list-windows --workspace focused --format "%{window-id}" | xargs -n1 aerospace layout accordion --window-id', 'mode main']
+m = [
+    'exec-and-forget resize-window --application "Firefox" --title "\[Media\]" --top 0% --left 0% --width 67% --height 100%',
+    'exec-and-forget resize-window --application "Slack" --top 0% --left 67% --width 33% --height 50%',
+    'exec-and-forget resize-window --application "Message" --top 50% --left 67% --width 33% --height 50%',
+    'mode main'
+]
+esc = 'mode main'
+enter = 'mode main'
+
+# 'Join' mode, joins windows together to fix tiling
+[mode.join.binding]
+down = ['join-with down', 'mode main']
+up = ['join-with up', 'mode main']
+left = ['join-with left', 'mode main']
+right = ['join-with right', 'mode main']
+esc = 'mode main'
+enter = 'mode main'
